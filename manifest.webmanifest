@@ -1,9 +1,10 @@
 {
+  "id": "/relatorio-turno-app",
   "name": "Relatório de Turno",
   "short_name": "Rel. Turno",
   "description": "Ocorrências, solicitações de atendimento e relatório diário da equipe corretiva (Elétrica e Mecânica).",
   "lang": "pt-BR",
-  "start_url": "./index.html",
+  "start_url": "./index.html?app=turno",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
