@@ -37,8 +37,8 @@
         </provider>
     </application>
 
-    <!-- Sem permissão de INTERNET de propósito: o app funciona só no aparelho.
-         O compartilhamento usa a folha nativa do Android (Share), que não precisa de rede. -->
+    <!-- Internet só para falar com o servidor da equipe (Supabase). Nenhuma outra permissão. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Deixa o app enxergar o WhatsApp para o botão "Enviar no WhatsApp" (Android 11+) -->
     <queries>

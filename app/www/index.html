@@ -12,6 +12,7 @@
 <!-- ===== Início ===== -->
 <div id="vHome" class="sec" data-view>
   <div class="top"><h1>Relatório de turno</h1><button type="button" class="lnk" data-go="cfg" aria-label="Configurações">⚙️</button></div>
+  <p class="sm mut" id="syncHome"></p>
 
   <section class="card" id="homeIni">
     <h2>Iniciar turno</h2>
@@ -29,7 +30,7 @@
         <h3>Equipe mecânica presente</h3>
         <div class="chips" id="iMec"></div>
       </div>
-      <p class="hint">Os nomes vêm das configurações. Toque nos presentes; dá para ajustar depois.</p>
+      <p class="hint">Os nomes vêm das configurações. Toque nos presentes; dá para ajustar depois. Se um colega já tiver aberto o turno da equipe, você entra nele.</p>
       <p class="err" id="iniErr" role="alert"></p>
       <button class="btn pri big" type="submit">Começar turno</button>
     </form>
@@ -53,13 +54,14 @@
     <div class="card" id="homeRecList" style="padding:4px 10px"></div>
   </section>
 
-  <section class="note info sm">Tudo fica só neste aparelho. O app não usa internet: o relatório só sai daqui quando você mesmo o envia.</section>
+  <section class="note info sm" id="homeNota"></section>
 </div>
 
 <!-- ===== Lançamentos do turno ===== -->
 <div id="vLan" class="sec" data-view hidden>
   <div class="top"><button type="button" class="lnk" data-go="home">← Início</button><h1>Lançamentos</h1></div>
   <p class="mut sm" id="lanSub"></p>
+  <p class="sm mut" id="syncLan"></p>
   <section class="card">
     <h2>Rascunho rápido</h2>
     <p class="hint">Abriu um atendimento agora? Anote só o equipamento e complete depois.</p>
@@ -73,6 +75,11 @@
   </section>
   <button type="button" class="btn pri big" data-go="occ-novo">+ Lançar ocorrência completa</button>
   <div id="lanLista" class="sec"></div>
+  <section class="card" id="prontoCard">
+    <h2>Terminou seus lançamentos?</h2>
+    <p class="sm mut" id="prontoInfo"></p>
+    <button type="button" class="btn" id="bPronto">Meus lançamentos estão completos</button>
+  </section>
   <button type="button" class="btn ok big" data-go="fechar">Encerrar turno e gerar relatório</button>
 </div>
 
@@ -128,6 +135,7 @@
 <div id="vFechar" class="sec" data-view hidden>
   <div class="top"><button type="button" class="lnk" data-go="lan">← Lançamentos</button><h1>Encerrar turno</h1></div>
   <div id="fAvisos" class="sec"></div>
+  <section class="card" id="fProntos"></section>
   <section class="card">
     <h2>Pendências para o próximo turno</h2>
     <p class="hint">As recebidas do turno anterior aparecem aqui. Marque o que foi concluído; o resto segue no relatório.</p>
@@ -176,6 +184,23 @@
   <textarea id="taCopy" readonly hidden aria-label="Texto para copiar"></textarea>
 </div>
 
+<!-- ===== Equipe (primeiro acesso) ===== -->
+<div id="vEquipe" class="sec" data-view hidden>
+  <div class="top"><h1>Entrar na equipe</h1></div>
+  <p class="sm mut">Todos os executantes do turno lançam no mesmo relatório. Para isso cada celular entra na equipe com um código.</p>
+  <form id="fEquipe" class="card form" autocomplete="off">
+    <label>Seu nome (aparece nas ocorrências que você lançar)<input id="eNome" maxlength="40" required placeholder="Ex.: João"></label>
+    <div class="seg" id="eModo"><button type="button" data-esp="entrar" aria-pressed="true">Tenho o código</button><button type="button" data-esp="criar" aria-pressed="false">Criar equipe nova</button></div>
+    <label id="eCodW">Código da equipe<input id="eCod" maxlength="9" placeholder="XXXX-XXXX" style="text-transform:uppercase;letter-spacing:.1em" autocapitalize="characters"></label>
+    <label id="eEqW" hidden>Nome da equipe<input id="eEq" maxlength="60" placeholder="Ex.: Manutenção turno B"></label>
+    <p class="hint" id="eHint">Peça o código a quem criou a equipe. Ele aparece em Ajustes no celular dessa pessoa.</p>
+    <p class="err" id="eErr" role="alert"></p>
+    <button class="btn pri big" type="submit" id="eOk">Entrar</button>
+  </form>
+  <p class="hint">Sem servidor configurado? O app funciona só neste aparelho. Configure em Ajustes &gt; Servidor.</p>
+  <button type="button" class="lnk" data-go="cfg">Ir para Ajustes</button>
+</div>
+
 <!-- ===== Histórico ===== -->
 <div id="vHist" class="sec" data-view hidden>
   <div class="top"><h1>Histórico</h1></div>
@@ -186,7 +211,17 @@
 <!-- ===== Configurações ===== -->
 <div id="vCfg" class="sec" data-view hidden>
   <div class="top"><button type="button" class="lnk" data-go="home">← Início</button><h1>Configurações</h1></div>
+  <section class="card form" id="cfgEquipe">
+    <h2>Equipe</h2>
+    <div id="cfgEqInfo" class="sm"></div>
+    <label>Seu nome<input id="cNome" maxlength="40" placeholder="Como aparece nas ocorrências"></label>
+    <div class="row">
+      <button type="button" class="btn" id="bNomeOk">Salvar nome</button>
+      <button type="button" class="btn danger" id="bSairEq">Sair da equipe</button>
+    </div>
+  </section>
   <form id="fCfg" class="card form" autocomplete="off">
+    <h2>Relatório</h2>
     <label>Título do relatório<input id="cTitulo" maxlength="80"></label>
     <label>Áreas (uma por linha)<textarea id="cAreas" rows="4"></textarea></label>
     <label>Turnos e horários (um por linha: nome, início, fim)<textarea id="cTurnos" rows="3" placeholder="A, 06:00, 14:00"></textarea></label>
@@ -197,6 +232,14 @@
     <label>Tipos de falha mecânica (separados por vírgula)<textarea id="cTipMec" rows="2"></textarea></label>
     <label class="chk"><input type="checkbox" id="cEmoji">Usar emojis nos títulos do relatório</label>
     <button class="btn pri" type="submit">Salvar configurações</button>
+  </form>
+  <form class="card form" id="fSrv" autocomplete="off">
+    <h2>Servidor</h2>
+    <p class="hint">Endereço e chave pública do projeto Supabase da equipe. Normalmente já vêm preenchidos no app; só mude se o responsável pedir.</p>
+    <label>URL<input id="sUrl" inputmode="url" placeholder="https://xxxx.supabase.co"></label>
+    <label>Chave pública<input id="sKey" placeholder="sb_publishable_... ou eyJ..."></label>
+    <p class="err" id="sErr" role="alert"></p>
+    <button class="btn" type="submit">Salvar servidor</button>
   </form>
   <section class="card form">
     <h2>Backup</h2>
@@ -210,8 +253,8 @@
   </section>
   <section class="card form">
     <h2>Privacidade</h2>
-    <p class="sm">O app não tem conexão com internet, não pede cadastro e não envia nada a nenhum servidor. Os dados ficam apenas neste aparelho até você apagá-los ou desinstalar o app.</p>
-    <button type="button" class="btn danger" id="bApagar">Apagar todos os dados</button>
+    <p class="sm">Os lançamentos ficam neste aparelho e no servidor da equipe, protegidos pelo código da equipe. Não há cadastro, rastreamento nem envio a terceiros. O relatório só sai quando alguém da equipe o envia.</p>
+    <button type="button" class="btn danger" id="bApagar">Apagar os dados deste aparelho</button>
   </section>
   <p class="hint" id="cfgVer"></p>
 </div>
@@ -224,6 +267,7 @@
 </nav>
 <div class="toast" id="toast" role="status" hidden></div>
 
+<script src="config.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
