@@ -78,7 +78,8 @@ Deno.serve(async (req) => {
   if (!codigo || texto.length < 3) return json({ erro: "dados-incompletos" }, 400);
 
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) return json({ erro: "sem-chave" }, 503);
+  if (!apiKey) { console.error("rt-voz: segredo ANTHROPIC_API_KEY ausente"); return json({ erro: "sem-chave" }, 503); }
+  if (!/^sk-ant-/.test(apiKey.trim())) console.error("rt-voz: ANTHROPIC_API_KEY não parece uma chave da Anthropic (deve começar com sk-ant-)");
 
   // valida o código da equipe e conta o uso (função só acessível com a service role)
   const url = Deno.env.get("SUPABASE_URL")!;
@@ -105,7 +106,7 @@ Deno.serve(async (req) => {
     `Equipamentos já registrados: ${lista(ctx.equipamentos, 300).join(" | ") || "(nenhum)"}`,
   ].join("\n");
 
-  const client = new Anthropic({ apiKey });
+  const client = new Anthropic({ apiKey: apiKey.trim() });
   try {
     const resp = await client.messages.create({
       model: MODELO,
@@ -120,8 +121,9 @@ Deno.serve(async (req) => {
     return json({ ok: true, ocorrencias: dados.ocorrencias ?? [], modelo: resp.model });
   } catch (e) {
     if (e instanceof Anthropic.RateLimitError) return json({ erro: "ocupado" }, 429);
-    if (e instanceof Anthropic.AuthenticationError) return json({ erro: "chave-invalida" }, 503);
-    if (e instanceof Anthropic.APIError) return json({ erro: "ia", status: e.status }, 502);
-    return json({ erro: "falha" }, 500);
+    if (e instanceof Anthropic.AuthenticationError) { console.error("rt-voz: chave recusada pela Anthropic"); return json({ erro: "chave-invalida" }, 401); }
+    if (e instanceof Anthropic.PermissionDeniedError) { console.error("rt-voz: chave sem permissão/crédito", e.message); return json({ erro: "sem-credito" }, 402); }
+    if (e instanceof Anthropic.APIError) { console.error("rt-voz: erro da API", e.status, e.message); return json({ erro: "ia", status: e.status }, 502); }
+    console.error("rt-voz: falha", String(e)); return json({ erro: "falha" }, 500);
   }
 });

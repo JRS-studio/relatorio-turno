@@ -159,7 +159,8 @@
         const m = String(e && e.message || '');
         motivoLocal = m === 'sem-chave' ? 'A IA ainda não foi ligada no servidor (falta cadastrar a chave da Anthropic).'
           : m === 'limite-diario' ? 'A equipe atingiu o limite diário de uso da IA.'
-          : m === 'chave-invalida' ? 'A chave da IA cadastrada no servidor é inválida.'
+          : m === 'chave-invalida' ? 'A chave da IA cadastrada no servidor foi recusada pela Anthropic.'
+          : m === 'sem-credito' ? 'A conta da Anthropic está sem crédito ou sem permissão.'
           : /abort/i.test(m) ? 'A IA demorou demais para responder.' : 'A IA não respondeu.';
       }
     } else motivoLocal = !equipeOk() ? 'Sem equipe configurada.' : DB.cfg.ia === false ? 'A IA está desligada em Ajustes.' : 'Sem internet.';
