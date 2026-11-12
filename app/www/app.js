@@ -3,7 +3,7 @@
    (Supabase, funções rt_*). Quem tem o código da equipe lança no mesmo relatório. */
 'use strict';
 
-const VERSAO = '2.0.2';
+const VERSAO = '2.1.0';
 const KEY = 'relatorio-turno.v2';
 
 /* ---------- utilidades ---------- */
@@ -658,8 +658,7 @@ function renderCfg() {
     ? '<p>Equipe: <b>' + esc(DB.sync.equipeNome) + '</b></p><p>Código da equipe: <b style="font-size:22px;letter-spacing:.12em">' + esc(DB.sync.codigo) + '</b></p><p class="hint">Passe este código aos colegas do turno (por exemplo no grupo do WhatsApp). Quem tem o código vê e lança no mesmo relatório, então não espalhe fora da equipe.</p><button type="button" class="btn" id="bCodCopy">Copiar código</button>'
     : (servidorOk() ? '<p class="hint">Você ainda não entrou numa equipe.</p><button type="button" class="btn pri" data-go="equipe">Entrar na equipe</button>' : '<p class="hint">Configure o servidor abaixo para usar o relatório compartilhado.</p>');
   const bc = $('#bCodCopy'); if (bc) bc.addEventListener('click', () => copiar('Código da equipe do Relatório de Turno: ' + DB.sync.codigo));
-  $('#cIa').checked = DB.cfg.ia !== false;
-  $('#cfgIa').textContent = equipeOk() ? 'Toque no microfone, fale a ocorrência do jeito que contaria a um colega e o app preenche os campos. Você só confere e lança.' : 'Sem equipe, a fala é organizada no próprio celular.';
+  $('#cfgIa').textContent = equipeOk() ? 'Toque no microfone e fale a ocorrência como contaria a um colega. A inteligência artificial da equipe preenche os campos; você confere e lança.' : 'O lançamento por voz usa a inteligência artificial do servidor da equipe. Entre numa equipe para usar.';
   $('#cfgVer').textContent = 'Versão ' + VERSAO + (nativo ? ' · app' : ' · navegador');
 }
 $('#bNomeOk').addEventListener('click', () => { const n = $('#cNome').value.trim(); if (!n) { toast('Informe seu nome.'); return; } DB.sync.nome = n; salvar(); toast('Nome salvo.'); renderStatus(); });
@@ -684,7 +683,7 @@ $('#fCfg').addEventListener('submit', e => {
   c.turnos = turnos.length ? turnos : CFG_PADRAO().turnos;
   c.letras = lista($('#cLetras').value); if (!c.letras.length) c.letras = CFG_PADRAO().letras;
   c.equipeEle = lista($('#cEle').value); c.equipeMec = lista($('#cMec').value); c.tiposEle = lista($('#cTipEle').value); c.tiposMec = lista($('#cTipMec').value);
-  c.emoji = $('#cEmoji').checked; c.ia = $('#cIa').checked; salvar(); toast('Configurações salvas.'); ir('home');
+  c.emoji = $('#cEmoji').checked; salvar(); toast('Configurações salvas.'); ir('home');
 });
 $('#bExport').addEventListener('click', async () => {
   const tx = JSON.stringify(DB); const ok = await compartilhar(tx, 'Backup do Relatório de Turno');
@@ -714,4 +713,3 @@ if (nativo && Plug.App && Plug.App.addListener) {
   });
   Plug.App.addListener('appStateChange', s => { if (s && s.isActive) agendarSync(100); });
 }
-$('#cIa').addEventListener('change', () => { DB.cfg.ia = $('#cIa').checked; salvar(); toast(DB.cfg.ia ? 'IA ligada para a voz.' : 'Voz organizada só no celular.'); });

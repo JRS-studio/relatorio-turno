@@ -245,6 +245,20 @@
     <p class="mut sm" id="vozPenTx" style="max-width:420px"></p>
   </div>
 
+  <div class="pensando" id="vozErro" hidden>
+    <div class="erro-ic"><svg class="ic l"><use href="#i-alert"/></svg></div>
+    <div style="font-size:20px;font-weight:750">A IA não conseguiu organizar</div>
+    <p class="mut" id="vozErroTx" style="max-width:420px;margin:0"></p>
+    <p class="sm" id="vozErroFala" style="max-width:420px;margin:0;font-style:italic"></p>
+    <div class="vbot" style="width:100%;max-width:440px;margin-top:8px">
+      <button type="button" class="btn pri big" id="vozTentar"><svg class="ic"><use href="#i-refresh"/></svg> Tentar de novo</button>
+      <div class="row">
+        <button type="button" class="btn" id="vozErroRasc">Guardar como rascunho</button>
+        <button type="button" class="btn" id="vozErroFalar"><svg class="ic s"><use href="#i-mic"/></svg> Falar de novo</button>
+      </div>
+    </div>
+  </div>
+
   <div id="vozRev" hidden style="flex:1;display:flex;flex-direction:column">
     <div class="rev" id="vozCards"></div>
     <p class="fonte" id="vozFonte"></p>
@@ -310,7 +324,6 @@
   <section class="card form">
     <h2>Lançamento por voz</h2>
     <p class="sm" id="cfgIa"></p>
-    <label class="chk"><input type="checkbox" id="cIa">Usar a inteligência artificial do servidor para organizar a fala (mais preciso). Desmarcado, tudo é interpretado no próprio celular.</label>
   </section>
   <form class="card form" id="fSrv" autocomplete="off">
     <h2>Servidor</h2>

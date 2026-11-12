@@ -202,3 +202,5 @@ nav.tabs .fab .ic{width:28px;height:28px}
 [hidden]{display:none!important}
 @media (min-width:680px){body{max-width:680px;margin:0 auto}nav.tabs{max-width:680px;margin:0 auto;border-radius:20px 20px 0 0;border:1px solid var(--line)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.erro-ic{width:76px;height:76px;border-radius:50%;display:grid;place-items:center;color:var(--warn);background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent)}

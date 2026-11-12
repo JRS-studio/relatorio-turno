@@ -4,7 +4,7 @@
   const SR = Plug.SpeechRecognition || null;
   const WebSR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
   const ov = $('#vozOv');
-  let estado = 'fechado', gravando = false, textoFinal = '', parcial = '', webRec = null, cartoes = [], fonte = '', motivoLocal = '';
+  let estado = 'fechado', gravando = false, textoFinal = '', parcial = '', webRec = null, cartoes = [], fonte = '';
 
   const vibra = (tipo) => {
     try {
@@ -17,8 +17,8 @@
   function mostra(fase) {
     estado = fase;
     $('#vozOuv').hidden = fase !== 'ouvindo'; $('#vozOuvBot').hidden = fase !== 'ouvindo';
-    $('#vozKbd').hidden = fase !== 'digitar'; $('#vozPen').hidden = fase !== 'pensando'; $('#vozRev').hidden = fase !== 'revisao';
-    $('#vozTit').lastChild.textContent = fase === 'revisao' ? ' Confira e lance' : fase === 'digitar' ? ' Descrever a ocorrência' : ' Lançar por voz';
+    $('#vozKbd').hidden = fase !== 'digitar'; $('#vozPen').hidden = fase !== 'pensando'; $('#vozRev').hidden = fase !== 'revisao'; $('#vozErro').hidden = fase !== 'erro';
+    $('#vozTit').lastChild.textContent = fase === 'revisao' ? ' Confira e lance' : fase === 'digitar' ? ' Descrever a ocorrência' : fase === 'erro' ? ' Não foi possível organizar' : ' Lançar por voz';
   }
   function renderTx() {
     const el = $('#vozTx'); el.innerHTML = '';
@@ -149,26 +149,51 @@
       sit: ['resolvido', 'paliativo', 'pendente'].includes(o.sit) ? o.sit : '', obs: String(o.obs || '').trim(), pend: o.sit === 'paliativo',
       quem: quem.length ? quem : (meuNome() ? [meuNome()] : []) };
   }
+  const MOTIVOS = {
+    'sem-chave': 'A IA ainda não foi ligada no servidor: falta cadastrar a chave da Anthropic (ANTHROPIC_API_KEY) no Supabase.',
+    'chave-invalida': 'A chave da Anthropic cadastrada no servidor foi recusada. Confira se foi copiada inteira.',
+    'sem-credito': 'A conta da Anthropic está sem crédito ou sem permissão.',
+    'limite-diario': 'A equipe atingiu o limite diário de uso da IA.',
+    'codigo-invalido': 'O código da equipe deste celular não é mais válido. Entre na equipe de novo em Ajustes.',
+    'ocupado': 'A IA está sobrecarregada agora. Tente de novo em alguns segundos.',
+    'recusado': 'A IA não aceitou este texto. Tente falar de outro jeito.'
+  };
+  let ultimoTexto = '';
   async function organizar(texto) {
-    texto = String(texto || '').trim();
+    texto = String(texto || '').trim(); ultimoTexto = texto;
     if (texto.length < 4) { toast('Não entendi nada. Tente de novo.'); ouvir(); return; }
     mostra('pensando'); $('#vozPenTx').textContent = '“' + texto + '”';
-    const ctx = contexto(); let lista = null; fonte = 'local';
-    if (equipeOk() && DB.cfg.ia !== false && navigator.onLine !== false) {
-      try { lista = await organizarServidor(texto, ctx); fonte = 'ia'; } catch (e) {
-        const m = String(e && e.message || '');
-        motivoLocal = m === 'sem-chave' ? 'A IA ainda não foi ligada no servidor (falta cadastrar a chave da Anthropic).'
-          : m === 'limite-diario' ? 'A equipe atingiu o limite diário de uso da IA.'
-          : m === 'chave-invalida' ? 'A chave da IA cadastrada no servidor foi recusada pela Anthropic.'
-          : m === 'sem-credito' ? 'A conta da Anthropic está sem crédito ou sem permissão.'
-          : /abort/i.test(m) ? 'A IA demorou demais para responder.' : 'A IA não respondeu.';
+    const ctx = contexto();
+    let lista = null, motivo = '';
+    if (!equipeOk()) motivo = 'Este celular não está numa equipe. A IA funciona pelo servidor da equipe: entre na equipe em Ajustes.';
+    else if (navigator.onLine === false) motivo = 'Sem internet. A IA precisa de conexão para organizar a fala.';
+    else {
+      /* até 2 tentativas: a segunda cobre uma falha passageira de rede */
+      for (let i = 0; i < 2 && !lista; i++) {
+        try { lista = await organizarServidor(texto, ctx); }
+        catch (e) {
+          const m = String(e && e.message || '');
+          motivo = MOTIVOS[m] || (/abort/i.test(m) ? 'A IA demorou demais para responder.' : /failed to fetch|network|load failed/i.test(m) ? 'Sem conexão com o servidor.' : 'A IA não respondeu (' + m + ').');
+          if (MOTIVOS[m] && m !== 'ocupado') break;
+        }
       }
-    } else motivoLocal = !equipeOk() ? 'Sem equipe configurada.' : DB.cfg.ia === false ? 'A IA está desligada em Ajustes.' : 'Sem internet.';
-    if (fonte === 'ia') motivoLocal = '';
-    if (!lista) { await new Promise(r => setTimeout(r, 350)); lista = Interpretador.interpretar(texto, ctx).ocorrencias; }
+    }
+    if (!lista) { mostraErro(motivo, texto); return; }
+    fonte = 'ia';
     cartoes = lista.map(o => normaliza(o, ctx));
     cartoes.forEach(c => { c._texto = texto; });
     renderCartoes(); mostra('revisao'); requestAnimationFrame(() => $$('#vozCards textarea').forEach(autoAltura)); vibra();
+  }
+  function mostraErro(motivo, texto) {
+    $('#vozErroTx').textContent = motivo; $('#vozErroFala').textContent = '“' + texto + '”';
+    mostra('erro'); vibra('forte');
+  }
+  /* guarda o que foi falado como rascunho, para completar depois sem perder nada */
+  function guardarFalaComoRascunho() {
+    const t = turnoAtual(); if (!t) { fechar(); ir('home'); return; }
+    occId = null;
+    gravarOcc({ esp: 'ele', area: '', eq: 'Ditado ' + agoraHM(), tipo: '', falha: ultimoTexto, acao: '', hi: agoraHM(), hf: '', parou: '', tm: '', sit: '', obs: '', pend: false, quem: meuNome() ? [meuNome()] : [], ditado: ultimoTexto }, true);
+    vibra('ok'); fechar(); toast('Fala guardada como rascunho. Complete depois em Lançamentos.'); ir(viewAtual, true);
   }
 
   /* ---------- revisão ---------- */
@@ -207,8 +232,7 @@
     }).join('');
     $$('#vozCards textarea').forEach(autoAltura);
     atualizaBotao();
-    $('#vozFonte').textContent = fonte === 'ia' ? 'Organizado pela inteligência artificial da equipe. Confira antes de lançar.' : 'Organizado no modo simples do celular, que pode errar. ' + motivoLocal + ' Confira com atenção.';
-    $('#vozFonte').style.color = fonte === 'ia' ? '' : 'var(--warn)';
+    $('#vozFonte').textContent = 'Organizado pela inteligência artificial da equipe. Confira antes de lançar.';
   }
   function autoAltura(ta) { ta.style.height = 'auto'; ta.style.height = Math.max(44, ta.scrollHeight) + 'px'; }
   function atualizaBotao() {
@@ -285,4 +309,7 @@
   $('#vozDeNovo').addEventListener('click', ouvir);
   $('#vozLancar').addEventListener('click', () => lancar(false));
   $('#vozRasc').addEventListener('click', () => lancar(true));
+  $('#vozTentar').addEventListener('click', () => organizar(ultimoTexto));
+  $('#vozErroRasc').addEventListener('click', guardarFalaComoRascunho);
+  $('#vozErroFalar').addEventListener('click', ouvir);
 })();

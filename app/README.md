@@ -17,9 +17,10 @@ O botão de microfone (centro da barra e no início) é o jeito principal de lan
    30 minutos, resolvido".
 2. O texto é transcrito pelo reconhecimento de voz do Android, em português.
 3. O app organiza a fala em campos (equipamento, área, falha, ação, horários, parada, situação,
-   quem atendeu). Com equipe e internet, usa a função `rt-voz` no Supabase, que chama o Claude
-   (Anthropic). Sem internet, sem chave ou se a IA falhar, usa o interpretador local do celular
-   (`www/interpretador.js`).
+   quem atendeu) **sempre pela IA**: a função `rt-voz` no Supabase chama o Claude (Anthropic).
+   Se a IA não responder (sem internet, sem chave, sem crédito), o app não preenche nada por
+   conta própria: mostra o motivo e oferece tentar de novo, falar de novo ou guardar o que foi
+   falado como rascunho para completar depois.
 4. Aparece um cartão de revisão já preenchido. O que faltou fica destacado em amarelo e se
    completa com um toque (chips de área, "Terminou agora", Sim/Não). Um toque em **Lançar** e
    pronto; "Desfazer" fica disponível por alguns segundos.
@@ -34,7 +35,8 @@ A função `rt-voz` já está publicada no projeto Supabase. Falta só a chave d
 2. No painel do Supabase: **Edge Functions > Secrets > Add new secret**, nome
    `ANTHROPIC_API_KEY`, valor = a chave.
 
-Sem a chave o app funciona igual, usando o interpretador local (menos preciso com falas longas).
+Sem a chave o lançamento por voz não funciona (o app avisa "falta cadastrar a chave"); o
+lançamento digitado continua normal.
 Opcional: `RT_MODELO` troca o modelo (padrão `claude-opus-5-5`) e `RT_LIMITE_DIA` limita o
 número de interpretações por equipe por dia (padrão 400).
 
@@ -78,8 +80,8 @@ número de interpretações por equipe por dia (padrão 400).
 - Voz: o áudio é transcrito pelo serviço de reconhecimento de voz do próprio Android (Google).
   O app não grava nem guarda áudio. Só o **texto** transcrito vai para a função `rt-voz` do seu
   Supabase, que valida o código da equipe e o envia à API da Anthropic para organizar os campos.
-  A Anthropic não usa dados da API para treinar modelos. Quem preferir pode desligar a IA em
-  *Ajustes* e tudo passa a ser interpretado no celular.
+  A Anthropic não usa dados da API para treinar modelos. Quem não quiser usar a IA pode lançar
+  digitando, sem o microfone.
 - Sem backup automático em nuvem do Android (`allowBackup=false`). A única permissão é INTERNET.
 - Nenhum nome de empresa, planta, área ou equipamento no código. Os padrões são genéricos
   ("Área 1", turnos A/B/C) e editáveis. Os dados pertencem à equipe, no projeto Supabase seu.
