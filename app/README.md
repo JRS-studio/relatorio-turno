@@ -52,16 +52,19 @@ próprio usuário configura em *Ajustes*.
   vazar, crie uma equipe nova (o código antigo pode ser removido no SQL Editor apagando a linha
   em `rt_equipes`).
 
-## Configurar o servidor (uma vez, 5 minutos)
+## Servidor: já configurado
 
-1. Crie uma conta em https://supabase.com e um projeto (região **South America (São Paulo)**,
-   plano Free). Guarde a senha do banco em lugar seguro; o app não usa essa senha.
-2. No painel do projeto, abra **SQL Editor**, cole o conteúdo de `supabase/schema.sql` e execute.
-3. Em **Project Settings > API** copie a **Project URL** e a chave **publishable** (ou a
-   **anon** antiga).
-4. Cole as duas em `www/config.js`. Assim todos os celulares já vêm configurados. (Também dá
-   para informar no app, em *Ajustes > Servidor*, celular por celular.)
-5. Gere o app (abaixo), instale, crie a equipe e distribua o código.
+O projeto Supabase **relatorio-turno** (região São Paulo, plano Free) já existe na sua
+organização, com o esquema de `supabase/schema.sql` aplicado, e `www/config.js` já aponta para
+ele. Não há nada a fazer aqui: gere o app (abaixo), instale, crie a equipe e distribua o código.
+
+Para recriar em outro projeto no futuro: crie o projeto em https://supabase.com, execute
+`supabase/schema.sql` no **SQL Editor**, copie em **Project Settings > API** a Project URL e a
+chave publishable, e cole as duas em `www/config.js`.
+
+Os avisos do painel de segurança do Supabase sobre "funções SECURITY DEFINER executáveis pelo
+anon" e "RLS sem políticas" são esperados: esse é exatamente o desenho (tabelas fechadas, acesso
+só pelas funções que exigem o código da equipe).
 
 Sem servidor configurado o app continua funcionando em modo individual, só no aparelho.
 
