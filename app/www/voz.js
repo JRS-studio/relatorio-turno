@@ -4,7 +4,7 @@
   const SR = Plug.SpeechRecognition || null;
   const WebSR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
   const ov = $('#vozOv');
-  let estado = 'fechado', gravando = false, textoFinal = '', parcial = '', webRec = null, cartoes = [], fonte = '';
+  let estado = 'fechado', gravando = false, textoFinal = '', parcial = '', webRec = null, cartoes = [], fonte = '', motivoLocal = '';
 
   const vibra = (tipo) => {
     try {
@@ -155,8 +155,15 @@
     mostra('pensando'); $('#vozPenTx').textContent = '“' + texto + '”';
     const ctx = contexto(); let lista = null; fonte = 'local';
     if (equipeOk() && DB.cfg.ia !== false && navigator.onLine !== false) {
-      try { lista = await organizarServidor(texto, ctx); fonte = 'ia'; } catch (e) { console.warn('IA indisponível, usando o interpretador local:', e.message); }
-    }
+      try { lista = await organizarServidor(texto, ctx); fonte = 'ia'; } catch (e) {
+        const m = String(e && e.message || '');
+        motivoLocal = m === 'sem-chave' ? 'A IA ainda não foi ligada no servidor (falta cadastrar a chave da Anthropic).'
+          : m === 'limite-diario' ? 'A equipe atingiu o limite diário de uso da IA.'
+          : m === 'chave-invalida' ? 'A chave da IA cadastrada no servidor é inválida.'
+          : /abort/i.test(m) ? 'A IA demorou demais para responder.' : 'A IA não respondeu.';
+      }
+    } else motivoLocal = !equipeOk() ? 'Sem equipe configurada.' : DB.cfg.ia === false ? 'A IA está desligada em Ajustes.' : 'Sem internet.';
+    if (fonte === 'ia') motivoLocal = '';
     if (!lista) { await new Promise(r => setTimeout(r, 350)); lista = Interpretador.interpretar(texto, ctx).ocorrencias; }
     cartoes = lista.map(o => normaliza(o, ctx));
     cartoes.forEach(c => { c._texto = texto; });
@@ -199,7 +206,8 @@
     }).join('');
     $$('#vozCards textarea').forEach(autoAltura);
     atualizaBotao();
-    $('#vozFonte').textContent = fonte === 'ia' ? 'Organizado pela inteligência artificial da equipe. Confira antes de lançar.' : 'Organizado no próprio celular. Confira antes de lançar.';
+    $('#vozFonte').textContent = fonte === 'ia' ? 'Organizado pela inteligência artificial da equipe. Confira antes de lançar.' : 'Organizado no modo simples do celular, que pode errar. ' + motivoLocal + ' Confira com atenção.';
+    $('#vozFonte').style.color = fonte === 'ia' ? '' : 'var(--warn)';
   }
   function autoAltura(ta) { ta.style.height = 'auto'; ta.style.height = Math.max(44, ta.scrollHeight) + 'px'; }
   function atualizaBotao() {
