@@ -1,0 +1,12 @@
+{
+  "appId": "com.jrsstudio.relatorioturno",
+  "appName": "Relatório de Turno",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "adjustMarginsForEdgeToEdge": "auto"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

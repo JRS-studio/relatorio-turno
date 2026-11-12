@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Relatório de Turno</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ===== Início ===== -->
+<div id="vHome" class="sec" data-view>
+  <div class="top"><h1>Relatório de turno</h1><button type="button" class="lnk" data-go="cfg" aria-label="Configurações">⚙️</button></div>
+
+  <section class="card" id="homeIni">
+    <h2>Iniciar turno</h2>
+    <form id="fIni" class="form" autocomplete="off">
+      <div class="g3">
+        <label>Data<input type="date" id="iData" required></label>
+        <label>Turno<select id="iTurno"></select></label>
+        <label>Letra<select id="iLetra"></select></label>
+      </div>
+      <div>
+        <h3>Equipe elétrica presente</h3>
+        <div class="chips" id="iEle"></div>
+      </div>
+      <div>
+        <h3>Equipe mecânica presente</h3>
+        <div class="chips" id="iMec"></div>
+      </div>
+      <p class="hint">Os nomes vêm das configurações. Toque nos presentes; dá para ajustar depois.</p>
+      <p class="err" id="iniErr" role="alert"></p>
+      <button class="btn pri big" type="submit">Começar turno</button>
+    </form>
+  </section>
+
+  <section class="card" id="homeAtual" hidden>
+    <div class="top" style="margin:0"><h2 id="haTit" style="flex:1"></h2><span class="pill ok">Em andamento</span></div>
+    <p class="mut sm" id="haSub"></p>
+    <div class="stats" id="haStats"></div>
+    <div class="sec" style="margin-top:12px">
+      <button type="button" class="btn pri big" data-go="occ-novo">+ Lançar ocorrência</button>
+      <div class="row">
+        <button type="button" class="btn" data-go="lan">Ver lançamentos</button>
+        <button type="button" class="btn" data-go="fechar">Encerrar turno</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="homeRec" hidden>
+    <h3>Relatórios recentes</h3>
+    <div class="card" id="homeRecList" style="padding:4px 10px"></div>
+  </section>
+
+  <section class="note info sm">Tudo fica só neste aparelho. O app não usa internet: o relatório só sai daqui quando você mesmo o envia.</section>
+</div>
+
+<!-- ===== Lançamentos do turno ===== -->
+<div id="vLan" class="sec" data-view hidden>
+  <div class="top"><button type="button" class="lnk" data-go="home">← Início</button><h1>Lançamentos</h1></div>
+  <p class="mut sm" id="lanSub"></p>
+  <section class="card">
+    <h2>Rascunho rápido</h2>
+    <p class="hint">Abriu um atendimento agora? Anote só o equipamento e complete depois.</p>
+    <form id="fQuick" class="form" autocomplete="off">
+      <div class="seg" id="qEsp"><button type="button" data-esp="ele" aria-pressed="true">Elétrica</button><button type="button" data-esp="mec" aria-pressed="false">Mecânica</button></div>
+      <div class="row">
+        <input id="qEq" list="dlEq" maxlength="60" placeholder="Equipamento (TAG ou nome)" aria-label="Equipamento">
+        <button class="btn pri" type="submit" style="flex:0 0 auto">Iniciar agora</button>
+      </div>
+    </form>
+  </section>
+  <button type="button" class="btn pri big" data-go="occ-novo">+ Lançar ocorrência completa</button>
+  <div id="lanLista" class="sec"></div>
+  <button type="button" class="btn ok big" data-go="fechar">Encerrar turno e gerar relatório</button>
+</div>
+
+<!-- ===== Formulário de ocorrência ===== -->
+<div id="vOcc" class="sec" data-view hidden>
+  <div class="top"><button type="button" class="lnk" id="occVoltar">← Voltar</button><h1 id="occTit">Nova ocorrência</h1></div>
+  <form id="fOcc" class="card form" autocomplete="off">
+    <div class="seg" id="oEsp"><button type="button" data-esp="ele" aria-pressed="true">Elétrica</button><button type="button" data-esp="mec" aria-pressed="false">Mecânica</button></div>
+
+    <div><h3>Área</h3><div class="chips" id="oArea"></div></div>
+
+    <label>Equipamento (TAG ou nome)<input id="oEq" list="dlEq" maxlength="60" placeholder="Ex.: Ventilador 3, TC-12"></label>
+    <datalist id="dlEq"></datalist>
+    <div class="hist-eq" id="oHist" hidden></div>
+
+    <div><h3>Tipo de falha <span class="mut" style="text-transform:none;font-weight:400">(opcional)</span></h3><div class="chips" id="oTipo"></div></div>
+
+    <label>O que aconteceu<textarea id="oFalha" maxlength="500" placeholder="Sintoma encontrado. Ex.: motor desarmando por sobrecarga"></textarea></label>
+    <label>O que foi feito<textarea id="oAcao" maxlength="800" placeholder="Ação executada. Ex.: reaperto dos terminais, medição de corrente, equipamento liberado"></textarea></label>
+
+    <div class="timef"><label>Início da falha<input type="time" id="oHi"></label><button type="button" class="btn" data-now="oHi">Agora</button></div>
+    <div class="timef"><label>Fim do atendimento<input type="time" id="oHf"></label><button type="button" class="btn" data-now="oHf">Agora</button></div>
+    <p class="hint" id="oDur"></p>
+
+    <div><h3>Equipamento parou?</h3>
+      <div class="chips" id="oParou"><button type="button" class="chip" data-v="sim" aria-pressed="false">Sim</button><button type="button" class="chip" data-v="nao" aria-pressed="false">Não</button></div>
+    </div>
+    <label id="oTmW" hidden>Tempo parado (minutos)<input id="oTm" inputmode="numeric" maxlength="4" placeholder="Ex.: 30"></label>
+
+    <div><h3>Situação ao final</h3>
+      <div class="chips" id="oSit">
+        <button type="button" class="chip" data-v="resolvido" aria-pressed="false">Resolvido</button>
+        <button type="button" class="chip" data-v="paliativo" aria-pressed="false">Paliativo</button>
+        <button type="button" class="chip" data-v="pendente" aria-pressed="false">Ficou pendente</button>
+      </div>
+    </div>
+    <label id="oObsW" hidden><span id="oObsL">Observação para o próximo turno / inspetor</span><textarea id="oObs" maxlength="400" placeholder="Ex.: programar troca definitiva do sensor na preventiva"></textarea></label>
+    <label class="chk" id="oPendW" hidden><input type="checkbox" id="oPend">Registrar como pendência para o próximo turno</label>
+
+    <div><h3>Quem atendeu</h3><div class="chips" id="oQuem"></div></div>
+    <label>Outro nome (opcional)<input id="oQuemX" maxlength="80" placeholder="Separe por vírgula"></label>
+
+    <p class="err" id="oErr" role="alert"></p>
+    <button class="btn pri big" type="submit" id="oSalvar">Lançar ocorrência</button>
+    <div class="row">
+      <button class="btn" type="button" id="oRascunho">Salvar como rascunho</button>
+      <button class="btn danger" type="button" id="oExcluir" hidden>Excluir</button>
+    </div>
+  </form>
+</div>
+
+<!-- ===== Fechamento ===== -->
+<div id="vFechar" class="sec" data-view hidden>
+  <div class="top"><button type="button" class="lnk" data-go="lan">← Lançamentos</button><h1>Encerrar turno</h1></div>
+  <div id="fAvisos" class="sec"></div>
+  <section class="card">
+    <h2>Pendências para o próximo turno</h2>
+    <p class="hint">As recebidas do turno anterior aparecem aqui. Marque o que foi concluído; o resto segue no relatório.</p>
+    <div id="pendLista"></div>
+    <form id="fPend" class="form" autocomplete="off" style="margin-top:10px">
+      <div class="seg" id="pEsp"><button type="button" data-esp="ele" aria-pressed="true">Elétrica</button><button type="button" data-esp="mec" aria-pressed="false">Mecânica</button></div>
+      <div class="row">
+        <input id="pTx" maxlength="300" placeholder="Nova pendência. Ex.: TC-12: trocar rolo de retorno" aria-label="Nova pendência">
+        <button class="btn" type="submit" style="flex:0 0 auto">Adicionar</button>
+      </div>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Equipe do turno</h2>
+    <div class="g2">
+      <label>Elétrica<input id="fEqEle" maxlength="200" placeholder="Nomes separados por vírgula"></label>
+      <label>Mecânica<input id="fEqMec" maxlength="200" placeholder="Nomes separados por vírgula"></label>
+    </div>
+    <label>Observações gerais do turno (opcional)<textarea id="fObs" maxlength="600" placeholder="Ex.: parada programada da linha 2 das 10h às 12h"></textarea></label>
+  </section>
+  <section class="card form">
+    <label class="chk"><input type="checkbox" id="fConf">Confirmei com a equipe que todos os atendimentos do turno foram lançados</label>
+    <p class="err" id="fErr" role="alert"></p>
+    <button type="button" class="btn ok big" id="bEncerrar">Encerrar turno e gerar relatório</button>
+  </section>
+</div>
+
+<!-- ===== Relatório ===== -->
+<div id="vRel" class="sec" data-view hidden>
+  <div class="top"><button type="button" class="lnk" data-go="home">← Início</button><h1>Relatório</h1></div>
+  <p class="mut sm" id="relSub"></p>
+  <section class="card sec">
+    <button type="button" class="btn ok big" id="bWa">Enviar no WhatsApp</button>
+    <div class="row">
+      <button type="button" class="btn" id="bCopy">Copiar texto</button>
+      <button type="button" class="btn" id="bShare">Compartilhar…</button>
+    </div>
+    <p class="hint">"Enviar no WhatsApp" abre a lista de conversas para você escolher o grupo.</p>
+  </section>
+  <section class="card">
+    <div class="prev" id="relPrev" aria-label="Texto do relatório"></div>
+  </section>
+  <section class="card sec" id="relAcoes">
+    <button type="button" class="btn" id="bReabrir">Reabrir este turno para corrigir</button>
+  </section>
+  <textarea id="taCopy" readonly hidden aria-label="Texto para copiar"></textarea>
+</div>
+
+<!-- ===== Histórico ===== -->
+<div id="vHist" class="sec" data-view hidden>
+  <div class="top"><h1>Histórico</h1></div>
+  <div class="card" id="histLista" style="padding:4px 10px"></div>
+  <p class="hint">Toque num turno para ver e reenviar o relatório. Os registros ficam só neste aparelho; faça um backup nas configurações de vez em quando.</p>
+</div>
+
+<!-- ===== Configurações ===== -->
+<div id="vCfg" class="sec" data-view hidden>
+  <div class="top"><button type="button" class="lnk" data-go="home">← Início</button><h1>Configurações</h1></div>
+  <form id="fCfg" class="card form" autocomplete="off">
+    <label>Título do relatório<input id="cTitulo" maxlength="80"></label>
+    <label>Áreas (uma por linha)<textarea id="cAreas" rows="4"></textarea></label>
+    <label>Turnos e horários (um por linha: nome, início, fim)<textarea id="cTurnos" rows="3" placeholder="A, 06:00, 14:00"></textarea></label>
+    <label>Letras das equipes (separadas por vírgula)<input id="cLetras" maxlength="60"></label>
+    <label>Nomes da equipe elétrica (separados por vírgula)<textarea id="cEle" rows="2"></textarea></label>
+    <label>Nomes da equipe mecânica (separados por vírgula)<textarea id="cMec" rows="2"></textarea></label>
+    <label>Tipos de falha elétrica (separados por vírgula)<textarea id="cTipEle" rows="2"></textarea></label>
+    <label>Tipos de falha mecânica (separados por vírgula)<textarea id="cTipMec" rows="2"></textarea></label>
+    <label class="chk"><input type="checkbox" id="cEmoji">Usar emojis nos títulos do relatório</label>
+    <button class="btn pri" type="submit">Salvar configurações</button>
+  </form>
+  <section class="card form">
+    <h2>Backup</h2>
+    <p class="hint">Gera um texto com todos os turnos e configurações. Guarde onde quiser e cole aqui num aparelho novo.</p>
+    <div class="row">
+      <button type="button" class="btn" id="bExport">Exportar backup</button>
+      <button type="button" class="btn" id="bImport">Importar backup</button>
+    </div>
+    <textarea id="taBackup" rows="4" placeholder="Cole aqui o texto do backup para importar" hidden></textarea>
+    <p class="err" id="bkErr" role="alert"></p>
+  </section>
+  <section class="card form">
+    <h2>Privacidade</h2>
+    <p class="sm">O app não tem conexão com internet, não pede cadastro e não envia nada a nenhum servidor. Os dados ficam apenas neste aparelho até você apagá-los ou desinstalar o app.</p>
+    <button type="button" class="btn danger" id="bApagar">Apagar todos os dados</button>
+  </section>
+  <p class="hint" id="cfgVer"></p>
+</div>
+
+<nav class="tabs" aria-label="Navegação">
+  <button type="button" data-tab="home" aria-current="page"><span>🏠</span>Início</button>
+  <button type="button" data-tab="lan"><span>📝</span>Lançar</button>
+  <button type="button" data-tab="hist"><span>📚</span>Histórico</button>
+  <button type="button" data-tab="cfg"><span>⚙️</span>Ajustes</button>
+</nav>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>

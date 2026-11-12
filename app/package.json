@@ -1,0 +1,19 @@
+{
+  "name": "relatorio-turno-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Relatório de turno da manutenção: lançamento rápido de ocorrências e envio do relatório pelo WhatsApp. Funciona 100% no aparelho, sem servidor.",
+  "scripts": {
+    "sync": "cap sync android",
+    "open": "cap open android",
+    "serve": "npx --yes serve www -l 8080"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
+    "@capacitor/preferences": "^8.0.1",
+    "@capacitor/share": "^8.0.3"
+  }
+}
