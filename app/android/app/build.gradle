@@ -8,7 +8,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0.0"
+        versionName "1.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +16,22 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Assinatura: por padrão usa a chave de TESTE que está no repositório (serve só para instalar
+    // direto nos celulares). Para a Play Store, aponte as variáveis de ambiente abaixo para a sua
+    // chave de verdade (ou use "Generate Signed App Bundle" no Android Studio).
+    signingConfigs {
+        release {
+            storeFile file(System.getenv('RT_KEYSTORE') ?: 'keystore-teste.jks')
+            storePassword System.getenv('RT_KEYSTORE_PASS') ?: 'teste123'
+            keyAlias System.getenv('RT_KEY_ALIAS') ?: 'teste'
+            keyPassword System.getenv('RT_KEY_PASS') ?: 'teste123'
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }

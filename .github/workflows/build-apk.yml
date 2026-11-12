@@ -1,0 +1,64 @@
+# Compila o app Android (pasta app/) nos servidores do GitHub e publica o APK numa Release.
+# Roda a cada alteração em app/ e também manualmente (Actions > Build APK > Run workflow).
+name: Build APK
+
+on:
+  push:
+    branches: ['**']
+    paths: ['app/**', '.github/workflows/build-apk.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Interface web para dentro do projeto Android
+        working-directory: app
+        run: |
+          npm ci
+          npx cap sync android
+
+      - name: Compilar APK (assinado com a chave de teste do repositório)
+        working-directory: app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+
+      - name: Nome do arquivo
+        id: nome
+        run: |
+          V=$(grep -oP 'versionName "\K[^"]+' app/android/app/build.gradle)
+          echo "versao=$V" >> "$GITHUB_OUTPUT"
+          cp app/android/app/build/outputs/apk/release/app-release.apk "relatorio-turno-$V-build${{ github.run_number }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-turno-apk
+          path: relatorio-turno-*.apk
+
+      - name: Publicar Release com o APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-v${{ steps.nome.outputs.versao }}-build${{ github.run_number }}
+          name: Relatório de Turno ${{ steps.nome.outputs.versao }} (build ${{ github.run_number }})
+          body: |
+            APK para instalar direto no celular (assinado com a chave de teste do repositório).
+            Baixe o arquivo .apk abaixo no celular, abra e permita a instalação.
+            Branch: ${{ github.ref_name }} · commit ${{ github.sha }}
+          files: relatorio-turno-*.apk

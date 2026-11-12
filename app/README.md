@@ -133,6 +133,18 @@ Requisitos no seu computador: [Android Studio](https://developer.android.com/stu
 Contas novas no Play Console precisam de um período de teste fechado com pelo menos 12
 testadores antes de liberar para produção. Use a própria equipe do turno como testadores.
 
+## APK pronto pelo GitHub (sem Android Studio)
+
+A cada alteração em `app/` o GitHub Actions compila o app e publica o APK em
+**Releases** do repositório (`.github/workflows/build-apk.yml`). No celular, abra a página de
+Releases, baixe o `.apk` mais recente, abra o arquivo e permita a instalação.
+
+Esse APK é assinado com a **chave de teste** `app/android/app/keystore-teste.jks` (senha
+`teste123`), que está no repositório de propósito para que qualquer build instale por cima da
+anterior. **Não use essa chave na Play Store**: lá, gere uma chave própria no Android Studio
+(ou aponte as variáveis `RT_KEYSTORE`, `RT_KEYSTORE_PASS`, `RT_KEY_ALIAS` e `RT_KEY_PASS` para
+ela no build).
+
 ## Distribuir sem a Play Store
 
 Para usar só com a equipe, dá para gerar um APK (**Build > Generate Signed App Bundle / APK >
