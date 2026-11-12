@@ -35,18 +35,64 @@
       return p.speechRecognition === 'granted';
     } catch (e) { return false; }
   }
-  let ouvintes = [];
-  async function iniciarNativo() {
-    ouvintes.forEach(h => h && h.remove && h.remove()); ouvintes = [];
-    ouvintes.push(await SR.addListener('partialResults', d => { parcial = (d.matches && d.matches[0]) || ''; renderTx(); }));
-    ouvintes.push(await SR.addListener('listeningState', d => {
-      if (d.status !== 'stopped') return;
-      if (parcial) { textoFinal = (textoFinal + ' ' + parcial).trim(); parcial = ''; renderTx(); }
-      /* o Android encerra após uma pausa: se o executante ainda não tocou em Pronto, continua ouvindo */
-      if (gravando && estado === 'ouvindo') setTimeout(() => { if (gravando) SR.start({ language: 'pt-BR', partialResults: true, popup: false, maxResults: 1 }).catch(() => {}); }, 150);
-    }));
-    await SR.start({ language: 'pt-BR', partialResults: true, popup: false, maxResults: 1 });
+  let ouvintes = [], ultimoCommit = '', reiniciando = false, cortou = false;
+  const palavras = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+  /* Alguns Android avisam "parou" mas continuam a mesma frase, mandando de novo o que já foi guardado.
+     Se o começo do parcial repete o último trecho guardado, corta essa parte. */
+  const compacto = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+  function distancia(a, b) {
+    const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+    let ant = Array.from({ length: n + 1 }, (_, j) => j), cur = new Array(n + 1);
+    for (let i = 1; i <= m; i++) {
+      cur[0] = i;
+      for (let j = 1; j <= n; j++) cur[j] = Math.min(ant[j] + 1, cur[j - 1] + 1, ant[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      [ant, cur] = [cur, ant];
+    }
+    return ant[n];
   }
+  /* Alguns Android avisam "parou" mas continuam a mesma frase e mandam de novo o que já foi guardado,
+     às vezes com grafia diferente ("rear-me" / "reame"). Procura o começo do parcial que corresponde
+     ao último trecho guardado (comparação aproximada, letra a letra) e corta essa parte. */
+  function semRepeticao(p) {
+    const ca = compacto(ultimoCommit); if (!ca || !p) return p;
+    const pal = String(p).trim().split(/\s+/);
+    let melhor = -1, menor = Infinity, acc = '';
+    for (let k = 0; k < pal.length; k++) {
+      acc += compacto(pal[k]);
+      if (acc.length < ca.length * 0.7) continue;
+      if (acc.length > ca.length * 1.3) break;
+      const d = distancia(acc, ca) / ca.length;
+      if (d < menor) { menor = d; melhor = k; }
+    }
+    if (melhor >= 0 && menor <= 0.2) return pal.slice(melhor + 1).join(' ');
+    /* parcial ainda mais curto que o trecho guardado e igual ao começo dele: é repetição em andamento */
+    const cp = compacto(p);
+    if (cp.length < ca.length && distancia(cp, ca.slice(0, cp.length)) / Math.max(1, cp.length) <= 0.2) return '';
+    return p;
+  }
+  const opcoes = { language: 'pt-BR', partialResults: true, popup: false, maxResults: 1 };
+  async function iniciarNativo() {
+    ouvintes.forEach(h => h && h.remove && h.remove()); ouvintes = []; ultimoCommit = '';
+    ouvintes.push(await SR.addListener('partialResults', d => {
+      if (estado !== 'ouvindo') return;
+      const bruto = (d.matches && d.matches[0]) || ''; parcial = semRepeticao(bruto); cortou = parcial !== bruto; renderTx();
+    }));
+    ouvintes.push(await SR.addListener('listeningState', d => {
+      if (d.status !== 'stopped' || estado !== 'ouvindo') return;
+      if (parcial) { textoFinal = (textoFinal + ' ' + parcial).trim(); ultimoCommit = cortou ? (ultimoCommit + ' ' + parcial).trim() : parcial; parcial = ''; cortou = false; renderTx(); }
+      /* o Android encerra após uma pausa: se o executante ainda não tocou em Pronto, continua ouvindo */
+      if (gravando && !reiniciando) {
+        reiniciando = true;
+        setTimeout(async () => {
+          try { const s = await comPrazo(SR.isListening(), 600); if (gravando && !(s && s.listening)) await comPrazo(SR.start(opcoes), 1500); } catch (e) { /* tenta na próxima pausa */ }
+          reiniciando = false;
+        }, 200);
+      }
+    }));
+    await comPrazo(SR.start(opcoes), 3000);
+  }
+  /* nunca deixa a tela presa esperando o microfone responder */
+  const comPrazo = (pr, ms) => Promise.race([Promise.resolve(pr).catch(() => null), new Promise(r => setTimeout(() => r(null), ms))]);
   function iniciarWeb() {
     webRec = new WebSR(); webRec.lang = 'pt-BR'; webRec.continuous = true; webRec.interimResults = true;
     webRec.onresult = ev => {
@@ -59,18 +105,19 @@
     webRec.start();
   }
   async function ouvir() {
-    textoFinal = ''; parcial = ''; renderTx(); mostra('ouvindo'); vibra();
+    textoFinal = ''; parcial = ''; ultimoCommit = ''; renderTx(); mostra('ouvindo'); vibra();
     if (nativo && SR) {
       if (!(await permissaoNativa())) { toast('Sem permissão de microfone. Você pode digitar.'); paraDigitar(); return; }
-      gravando = true; try { await iniciarNativo(); } catch (e) { gravando = false; paraDigitar(); }
+      gravando = true; try { await iniciarNativo(); } catch (e) { gravando = false; toast('Não consegui ligar o microfone. Você pode digitar.'); paraDigitar(); }
     } else if (WebSR) { gravando = true; try { iniciarWeb(); } catch (e) { gravando = false; paraDigitar(); } }
     else paraDigitar();
   }
   async function pararCaptura() {
     gravando = false;
-    if (nativo && SR) { try { await SR.stop(); } catch (e) { /* já parado */ } await new Promise(r => setTimeout(r, 250)); ouvintes.forEach(h => h && h.remove && h.remove()); ouvintes = []; }
-    if (webRec) { try { webRec.stop(); } catch (e) { /* já parado */ } webRec = null; }
     if (parcial) { textoFinal = (textoFinal + ' ' + parcial).trim(); parcial = ''; }
+    const ouv = ouvintes; ouvintes = [];
+    if (nativo && SR) { await comPrazo(SR.stop(), 700); ouv.forEach(h => { try { h && h.remove && h.remove(); } catch (e) { /* já removido */ } }); }
+    if (webRec) { try { webRec.stop(); } catch (e) { /* já parado */ } webRec = null; }
   }
   function paraDigitar() { mostra('digitar'); $('#vozTa').value = textoFinal || ''; setTimeout(() => $('#vozTa').focus(), 60); }
 
@@ -82,7 +129,7 @@
     return { agora: agoraHM(), areas: DB.cfg.areas, tiposEle: DB.cfg.tiposEle, tiposMec: DB.cfg.tiposMec, equipe, equipamentos: eqs.slice(0, 300) };
   }
   async function organizarServidor(texto, ctx) {
-    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 25000);
+    const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 12000);
     try {
       const r = await fetch(DB.sync.url.replace(/\/+$/, '') + '/functions/v1/rt-voz', { method: 'POST', signal: ac.signal,
         headers: { 'Content-Type': 'application/json', apikey: DB.sync.key, Authorization: 'Bearer ' + DB.sync.key }, body: JSON.stringify({ codigo: DB.sync.codigo, texto, ctx }) });
@@ -223,7 +270,7 @@
 
   document.addEventListener('click', e => { if (e.target.closest('[data-voz]')) { e.preventDefault(); abrir(); } });
   $('#vozFechar').addEventListener('click', fechar);
-  $('#vozPronto').addEventListener('click', async () => { await pararCaptura(); vibra(); organizar(textoFinal); });
+  $('#vozPronto').addEventListener('click', async () => { const b = $('#vozPronto'); if (b.disabled) return; b.disabled = true; vibra(); try { await pararCaptura(); organizar(textoFinal); } finally { b.disabled = false; } });
   $('#vozDigitar').addEventListener('click', async () => { await pararCaptura(); paraDigitar(); });
   $('#vozTaOk').addEventListener('click', () => organizar($('#vozTa').value));
   $('#vozDeNovo').addEventListener('click', ouvir);

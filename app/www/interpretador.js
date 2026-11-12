@@ -63,7 +63,7 @@
     [/redutor|engrenag/, 'redutor'], [/hidraul|oleo|mangueira/, 'hidraul'], [/pneumat|ar comprimido|cilindro/, 'pneumat'],
     [/vazament|vazando/, 'vazament'], [/desgast|trinc|estrutur|solda|chapa/, 'desgast']
   ];
-  const ACAO = /\b(trocou|trocamos|substituiu|substituimos|reapertou|reapertamos|apertou|ajustou|ajustamos|limpou|limpamos|lubrificou|lubrificamos|alinhou|alinhamos|liberou|liberamos|resetou|rearmou|religou|religamos|testou|mediu|verificou|instalou|reparou|consertou|soldou|regulou|isolou|refez|recuperou|tensionou|eliminou|corrigiu|desobstruiu|troquei|trocad[oa]s?|troca d[oe]|substitui|substituid|reapert|apertei|ajustei|ajustad|limpei|limpez|lubrifiquei|lubrificad|alinhei|alinhad|realiz|fiz|feito|feita|resetei|resetad|rearmei|rearmad|religuei|religad|liberei|testei|testad|medi\b|medicao|verifiquei|instalei|instalad|reparei|consertei|soldei|desobstrui|regulei|regulad|isolei|refiz|recuperei|tensionei|tensionad|eliminei|corrigi|normalizei)/;
+  const ACAO = /\b(foi feit[oa]|foi realizad[oa]|foi trocad[oa]|foi substituid[oa]|foi ajustad[oa]|foi rearmad[oa]|trocou|trocamos|substituiu|substituimos|reapertou|reapertamos|apertou|ajustou|ajustamos|limpou|limpamos|lubrificou|lubrificamos|alinhou|alinhamos|liberou|liberamos|resetou|rearmou|religou|religamos|testou|mediu|verificou|instalou|reparou|consertou|soldou|regulou|isolou|refez|recuperou|tensionou|eliminou|corrigiu|desobstruiu|troquei|trocad[oa]s?|troca d[oe]|substitui|substituid|reapert|apertei|ajustei|ajustad|limpei|limpez|lubrifiquei|lubrificad|alinhei|alinhad|realiz|fiz|feito|feita|resetei|resetad|rearmei|rearmad|religuei|religad|liberei|testei|testad|medi\b|medicao|verifiquei|instalei|instalad|reparei|consertei|soldei|desobstrui|regulei|regulad|isolei|refiz|recuperei|tensionei|tensionad|eliminei|corrigi|normalizei)/;
   const LIXO = /^(e|ai|entao|tipo|ne|bom|olha|assim|la|o|a|os|as|uma?|que)\b\s*/;
 
   const limpaFrase = s => {
@@ -102,6 +102,11 @@
         if (/^\s*(minutos?|min|horas?|h\b)/.test(ctxDepois)) continue;
         o.eq = m[1].toUpperCase() + '-' + m[2].toUpperCase(); break;
       }
+    }
+    const EQN = 'balanca|bomba|ventilador|exaustor|correia|transportador|britador|peneira|painel|compressor|talha|forno|moinho|alimentador|redutor|esteira|misturador|ponte rolante|empilhadeira|recuperadora|empilhadora|silo|tambor|chute|maquina|prensa|guincho|valvula|filtro|bobinadeira|laminador|tesoura|calha|elevador';
+    if (!o.eq) {
+      const m = t.match(new RegExp('\\b(' + EQN + ')\\s+(?:n(?:umero|o)?\\.?\\s*)?(\\d{1,4}[a-z]?)\\b'));
+      if (m) { const nome = orig.normalize('NFC').match(new RegExp('\\b(' + m[1].replace('a', '[aáâã]').replace('c', '[cç]') + ')', 'i')); o.eq = limpaFrase((nome ? nome[1] : m[1]) + ' ' + m[2].toUpperCase()); }
     }
     if (!o.eq) {
       const m = t.match(/\b(no|na|do|da)\s+((?:ventilador|exaustor|bomba|motor|correia|transportador|britador|peneira|painel|compressor|ponte rolante|talha|forno|moinho|alimentador|redutor)(?:\s+(?:\d+[a-z]?|[a-z]{1,3}-?\d+))?)/);
@@ -151,7 +156,7 @@
     (ctx.equipe || []).forEach(n => { const k = semAc(n).split(' ')[0]; if (k.length > 2 && new RegExp('\\b' + k + '\\b').test(t)) o.quem.push(n); });
 
     /* falha x ação: quebra em trechos e separa pelos verbos de ação */
-    const trechos = orig.split(/(?<=[.;!?])\s+|,\s+|\s+(?:e\s+(?:a[ií]\s+|ent[aã]o\s+)?|depois\s+|a[ií]\s+)(?=(?:eu\s+|a gente\s+|foi\s+|o\s+[A-Za-zÀ-ú]+\s+|a\s+[A-Za-zÀ-ú]+\s+)?(?:troc|troq|substitu|reapert|apertei|ajust|limp|lubrific|alinh|realiz|fiz|reset|rearm|relig|liber|test|medi|verifiq|instal|repar|consert|sold|desobstru|regul|isol|refiz|recuper|tension|elimin|corrigi|normaliz))/i).map(s => s.trim()).filter(Boolean);
+    const trechos = orig.split(/(?<=[.;!?])\s+|,\s+|\s+(?=foi\s+(?:feit|realizad|trocad|substitu|ajustad|rearmad))|\s+(?:e\s+(?:a[ií]\s+|ent[aã]o\s+)?|depois\s+|a[ií]\s+)(?=(?:foi\s+feit[oa]|foi\s+realizad[oa])|(?:eu\s+|a gente\s+|foi\s+|o\s+[A-Za-zÀ-ú]+\s+|a\s+[A-Za-zÀ-ú]+\s+)?(?:troc|troq|substitu|reapert|apertei|ajust|limp|lubrific|alinh|realiz|fiz|reset|rearm|relig|liber|test|medi|verifiq|instal|repar|consert|sold|desobstru|regul|isol|refiz|recuper|tension|elimin|corrigi|normaliz))/i).map(s => s.trim()).filter(Boolean);
     const falhas = [], acoes = [], obs = [];
     const tira = s => s
       .replace(/(?:^|\s)(d?as|às|desde (as|às)|até (as|às)|ate as|a partir das|pelas)\s+(\d{1,2}|uma|duas|três|tres|quatro|cinco|seis|sete|oito|nove|dez|onze|meio-dia|meia-noite)([:h]\d{0,2})?(\s+e\s+(\d{1,2}|meia))?(\s+horas?)?(\s+da\s+(tarde|manhã|manha|noite))?/gi, ' ')

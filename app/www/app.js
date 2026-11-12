@@ -3,7 +3,7 @@
    (Supabase, funções rt_*). Quem tem o código da equipe lança no mesmo relatório. */
 'use strict';
 
-const VERSAO = '2.0.0';
+const VERSAO = '2.0.1';
 const KEY = 'relatorio-turno.v2';
 
 /* ---------- utilidades ---------- */
