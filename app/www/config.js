@@ -3,6 +3,6 @@
    ela só permite chamar as funções rt_* e cada chamada exige o código da equipe.
    Também pode ser informado dentro do app, em Ajustes > Servidor. */
 window.RT_CONFIG = {
-  url: '',   // ex.: 'https://abcdefghijklmnop.supabase.co'
-  key: ''    // ex.: 'sb_publishable_...' (ou a chave anon antiga, eyJ...)
+  url: 'https://eiqpwzfodcirkaxgfwri.supabase.co',
+  key: 'sb_publishable_vj-R2JUbtj0M6anNOHxMhQ_E646wLmn'
 };
