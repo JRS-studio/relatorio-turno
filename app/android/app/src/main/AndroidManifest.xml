@@ -39,11 +39,17 @@
 
     <!-- Internet só para falar com o servidor da equipe (Supabase). Nenhuma outra permissão. -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Microfone: só para o lançamento por voz, ativado quando o executante toca no botão -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- Deixa o app enxergar o WhatsApp para o botão "Enviar no WhatsApp" (Android 11+) -->
     <queries>
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
         <intent>
             <action android:name="android.intent.action.SEND" />
             <data android:mimeType="text/plain" />

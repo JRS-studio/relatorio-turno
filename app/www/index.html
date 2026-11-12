@@ -3,55 +3,87 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#0a0e13">
 <title>Relatório de Turno</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4M8 22h8"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0 5 5L21 13l-8 8-2-2 1.3-1.3a4 4 0 0 0-5-5L3 9l2-2 2 2 4-4-2-2 2-2z" transform="translate(0 0)"/></symbol>
+  <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 13h.01M18 13h.01M10 13h4M7 16h10"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4M4 4h12l-2 4 2 4H4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-tool" viewBox="0 0 24 24"><path d="M3 21l7-7M14 4l6 6-3 3-6-6zM9.5 8.5l6 6"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 9v6M14 9v6"/></symbol>
+  <symbol id="i-status" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M4 4h16v12l-4 4H4zM16 20v-4h4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8zM7.5 7.5h.01"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></symbol>
+</svg>
 
 <!-- ===== Início ===== -->
 <div id="vHome" class="sec" data-view>
-  <div class="top"><h1>Relatório de turno</h1><button type="button" class="lnk" data-go="cfg" aria-label="Configurações">⚙️</button></div>
-  <p class="sm mut" id="syncHome"></p>
+  <div class="top"><div style="flex:1"><p class="sm mut" style="margin:0;display:flex;align-items:center;gap:8px"><span class="dot" id="syncDot"></span><span id="syncHome"></span></p></div><button type="button" class="icbtn" data-go="cfg" aria-label="Ajustes"><svg class="ic"><use href="#i-gear"/></svg></button></div>
 
-  <section class="card" id="homeIni">
-    <h2>Iniciar turno</h2>
-    <form id="fIni" class="form" autocomplete="off">
-      <div class="g3">
-        <label>Data<input type="date" id="iData" required></label>
-        <label>Turno<select id="iTurno"></select></label>
-        <label>Letra<select id="iLetra"></select></label>
-      </div>
-      <div>
-        <h3>Equipe elétrica presente</h3>
-        <div class="chips" id="iEle"></div>
-      </div>
-      <div>
-        <h3>Equipe mecânica presente</h3>
-        <div class="chips" id="iMec"></div>
-      </div>
-      <p class="hint">Os nomes vêm das configurações. Toque nos presentes; dá para ajustar depois. Se um colega já tiver aberto o turno da equipe, você entra nele.</p>
+  <section class="card hero" id="homeIni">
+    <p class="kick">Novo turno</p>
+    <h1 id="iniResumo">Turno</h1>
+    <p class="mut sm" id="iniSub"></p>
+    <form id="fIni" class="form" autocomplete="off" style="margin-top:14px">
+      <button class="btn pri big" type="submit"><svg class="ic"><use href="#i-check"/></svg> Começar turno</button>
+      <details id="iniDet">
+        <summary>Ajustar data, turno, letra e equipe</summary>
+        <div class="sec" style="margin-top:8px">
+          <div class="g3">
+            <label>Data<input type="date" id="iData" required></label>
+            <label>Turno<select id="iTurno"></select></label>
+            <label>Letra<select id="iLetra"></select></label>
+          </div>
+          <div><h3>Equipe elétrica presente</h3><div class="chips" id="iEle"></div></div>
+          <div><h3>Equipe mecânica presente</h3><div class="chips" id="iMec"></div></div>
+          <p class="hint">Se um colega já abriu o turno da equipe, você entra nele automaticamente.</p>
+        </div>
+      </details>
       <p class="err" id="iniErr" role="alert"></p>
-      <button class="btn pri big" type="submit">Começar turno</button>
     </form>
   </section>
 
-  <section class="card" id="homeAtual" hidden>
-    <div class="top" style="margin:0"><h2 id="haTit" style="flex:1"></h2><span class="pill ok">Em andamento</span></div>
-    <p class="mut sm" id="haSub"></p>
-    <div class="stats" id="haStats"></div>
-    <div class="sec" style="margin-top:12px">
-      <button type="button" class="btn pri big" data-go="occ-novo">+ Lançar ocorrência</button>
-      <div class="row">
-        <button type="button" class="btn" data-go="lan">Ver lançamentos</button>
-        <button type="button" class="btn" data-go="fechar">Encerrar turno</button>
+  <section class="sec" id="homeAtual" hidden>
+    <div class="card hero">
+      <p class="kick"><span class="pill ok">● Em andamento</span></p>
+      <h1 id="haTit"></h1>
+      <p class="mut sm" id="haSub"></p>
+      <div class="stats" id="haStats" style="margin-top:14px"></div>
+      <div class="mic-zone">
+        <button type="button" class="mic" data-voz aria-label="Falar ocorrência"><svg class="ic"><use href="#i-mic"/></svg></button>
+        <div class="lbl">Toque e fale a ocorrência</div>
+        <div class="ex">Ex.: “VT-03 da Linha 1 desarmou às 14h30, reapertei os bornes, liberado às 15h, ficou parado 30 minutos, resolvido.”</div>
       </div>
     </div>
+    <div class="quick">
+      <button type="button" data-go="occ-novo"><svg class="ic"><use href="#i-keyboard"/></svg>Digitar</button>
+      <button type="button" data-go="lan"><svg class="ic"><use href="#i-list"/></svg><span id="haLanN">Lançamentos</span></button>
+      <button type="button" data-go="fechar"><svg class="ic"><use href="#i-flag"/></svg>Encerrar</button>
+    </div>
+    <div id="haUlt" class="sec"></div>
   </section>
 
   <section id="homeRec" hidden>
     <h3>Relatórios recentes</h3>
-    <div class="card" id="homeRecList" style="padding:4px 10px"></div>
+    <div class="card" id="homeRecList" style="padding:2px 14px"></div>
   </section>
 
   <section class="note info sm" id="homeNota"></section>
@@ -61,19 +93,20 @@
 <div id="vLan" class="sec" data-view hidden>
   <div class="top"><button type="button" class="lnk" data-go="home">← Início</button><h1>Lançamentos</h1></div>
   <p class="mut sm" id="lanSub"></p>
-  <p class="sm mut" id="syncLan"></p>
+  <p class="sm mut" style="display:flex;align-items:center;gap:8px"><span class="dot" id="syncDot2"></span><span id="syncLan"></span></p>
   <section class="card">
     <h2>Rascunho rápido</h2>
     <p class="hint">Abriu um atendimento agora? Anote só o equipamento e complete depois.</p>
     <form id="fQuick" class="form" autocomplete="off">
-      <div class="seg" id="qEsp"><button type="button" data-esp="ele" aria-pressed="true">Elétrica</button><button type="button" data-esp="mec" aria-pressed="false">Mecânica</button></div>
+      <div class="seg" id="qEsp"><button type="button" data-esp="ele" aria-pressed="true"><svg class="ic s"><use href="#i-bolt"/></svg> Elétrica</button><button type="button" data-esp="mec" aria-pressed="false"><svg class="ic s"><use href="#i-tool"/></svg> Mecânica</button></div>
       <div class="row">
         <input id="qEq" list="dlEq" maxlength="60" placeholder="Equipamento (TAG ou nome)" aria-label="Equipamento">
-        <button class="btn pri" type="submit" style="flex:0 0 auto">Iniciar agora</button>
+        <button class="btn" type="submit" style="flex:0 0 auto">Iniciar agora</button>
       </div>
     </form>
   </section>
-  <button type="button" class="btn pri big" data-go="occ-novo">+ Lançar ocorrência completa</button>
+  <div class="row"><button type="button" class="btn pri big" data-voz><svg class="ic"><use href="#i-mic"/></svg> Falar ocorrência</button></div>
+  <button type="button" class="btn big" data-go="occ-novo"><svg class="ic"><use href="#i-keyboard"/></svg> Digitar ocorrência</button>
   <div id="lanLista" class="sec"></div>
   <section class="card" id="prontoCard">
     <h2>Terminou seus lançamentos?</h2>
@@ -87,7 +120,7 @@
 <div id="vOcc" class="sec" data-view hidden>
   <div class="top"><button type="button" class="lnk" id="occVoltar">← Voltar</button><h1 id="occTit">Nova ocorrência</h1></div>
   <form id="fOcc" class="card form" autocomplete="off">
-    <div class="seg" id="oEsp"><button type="button" data-esp="ele" aria-pressed="true">Elétrica</button><button type="button" data-esp="mec" aria-pressed="false">Mecânica</button></div>
+    <div class="seg" id="oEsp"><button type="button" data-esp="ele" aria-pressed="true"><svg class="ic s"><use href="#i-bolt"/></svg> Elétrica</button><button type="button" data-esp="mec" aria-pressed="false"><svg class="ic s"><use href="#i-tool"/></svg> Mecânica</button></div>
 
     <div><h3>Área</h3><div class="chips" id="oArea"></div></div>
 
@@ -168,7 +201,7 @@
   <div class="top"><button type="button" class="lnk" data-go="home">← Início</button><h1>Relatório</h1></div>
   <p class="mut sm" id="relSub"></p>
   <section class="card sec">
-    <button type="button" class="btn ok big" id="bWa">Enviar no WhatsApp</button>
+    <button type="button" class="btn ok big" id="bWa"><svg class="ic"><use href="#i-send"/></svg> Enviar no WhatsApp</button>
     <div class="row">
       <button type="button" class="btn" id="bCopy">Copiar texto</button>
       <button type="button" class="btn" id="bShare">Compartilhar…</button>
@@ -182,6 +215,47 @@
     <button type="button" class="btn" id="bReabrir">Reabrir este turno para corrigir</button>
   </section>
   <textarea id="taCopy" readonly hidden aria-label="Texto para copiar"></textarea>
+</div>
+
+<!-- ===== Voz ===== -->
+<div class="voz" id="vozOv" hidden role="dialog" aria-modal="true" aria-label="Lançar por voz">
+  <div class="vtop">
+    <span class="titulo" id="vozTit"><svg class="ic s"><use href="#i-mic"/></svg> Lançar por voz</span>
+    <button type="button" class="icbtn" id="vozFechar" aria-label="Fechar"><svg class="ic"><use href="#i-x"/></svg></button>
+  </div>
+
+  <div class="ouvindo" id="vozOuv">
+    <div class="orb"><svg class="ic"><use href="#i-mic"/></svg></div>
+    <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="transc" id="vozTx" aria-live="polite"></div>
+  </div>
+  <div class="vbot" id="vozOuvBot">
+    <button type="button" class="btn pri big" id="vozPronto"><svg class="ic"><use href="#i-check"/></svg> Pronto</button>
+    <button type="button" class="btn ghost" id="vozDigitar"><svg class="ic s"><use href="#i-keyboard"/></svg> Prefiro digitar</button>
+  </div>
+
+  <div class="sec kbd" id="vozKbd" hidden style="flex:1;justify-content:center">
+    <label>Descreva a ocorrência como falaria para um colega<textarea id="vozTa" placeholder="Ex.: VT-03 da Linha 1 desarmou às 14h30, reapertei os bornes, liberado às 15h, parado 30 min, resolvido"></textarea></label>
+    <button type="button" class="btn pri big" id="vozTaOk"><svg class="ic"><use href="#i-check"/></svg> Organizar</button>
+  </div>
+
+  <div class="pensando" id="vozPen" hidden>
+    <div class="spin"></div>
+    <div class="shimmer">Organizando a ocorrência…</div>
+    <p class="mut sm" id="vozPenTx" style="max-width:420px"></p>
+  </div>
+
+  <div id="vozRev" hidden style="flex:1;display:flex;flex-direction:column">
+    <div class="rev" id="vozCards"></div>
+    <p class="fonte" id="vozFonte"></p>
+    <div class="vbot" style="position:sticky;bottom:0;padding-top:10px;background:linear-gradient(transparent,var(--bg) 30%)">
+      <button type="button" class="btn ok big" id="vozLancar"><svg class="ic"><use href="#i-check"/></svg> Lançar</button>
+      <div class="row">
+        <button type="button" class="btn" id="vozDeNovo"><svg class="ic s"><use href="#i-mic"/></svg> Falar de novo</button>
+        <button type="button" class="btn" id="vozRasc">Guardar rascunho</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ===== Equipe (primeiro acesso) ===== -->
@@ -233,6 +307,11 @@
     <label class="chk"><input type="checkbox" id="cEmoji">Usar emojis nos títulos do relatório</label>
     <button class="btn pri" type="submit">Salvar configurações</button>
   </form>
+  <section class="card form">
+    <h2>Lançamento por voz</h2>
+    <p class="sm" id="cfgIa"></p>
+    <label class="chk"><input type="checkbox" id="cIa">Usar a inteligência artificial do servidor para organizar a fala (mais preciso). Desmarcado, tudo é interpretado no próprio celular.</label>
+  </section>
   <form class="card form" id="fSrv" autocomplete="off">
     <h2>Servidor</h2>
     <p class="hint">Endereço e chave pública do projeto Supabase da equipe. Normalmente já vêm preenchidos no app; só mude se o responsável pedir.</p>
@@ -260,14 +339,17 @@
 </div>
 
 <nav class="tabs" aria-label="Navegação">
-  <button type="button" data-tab="home" aria-current="page"><span>🏠</span>Início</button>
-  <button type="button" data-tab="lan"><span>📝</span>Lançar</button>
-  <button type="button" data-tab="hist"><span>📚</span>Histórico</button>
-  <button type="button" data-tab="cfg"><span>⚙️</span>Ajustes</button>
+  <button type="button" data-tab="home" aria-current="page"><svg class="ic"><use href="#i-home"/></svg>Início</button>
+  <button type="button" data-tab="lan"><svg class="ic"><use href="#i-list"/></svg>Lançar</button>
+  <button type="button" class="fab" data-voz aria-label="Falar ocorrência"><svg class="ic"><use href="#i-mic"/></svg></button>
+  <button type="button" data-tab="hist"><svg class="ic"><use href="#i-clock"/></svg>Histórico</button>
+  <button type="button" data-tab="cfg"><svg class="ic"><use href="#i-gear"/></svg>Ajustes</button>
 </nav>
-<div class="toast" id="toast" role="status" hidden></div>
+<div class="toast" id="toast" role="status" hidden><span id="toastTx"></span><button type="button" id="toastBt" hidden></button></div>
 
 <script src="config.js"></script>
+<script src="interpretador.js"></script>
 <script src="app.js"></script>
+<script src="voz.js"></script>
 </body>
 </html>

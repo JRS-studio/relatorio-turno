@@ -8,6 +8,36 @@ Supabase seu, não há login nem cadastro, e não existe nome de planta ou equip
 código. Tudo que é específico (áreas, turnos, equipe, tipos de falha, título do relatório) o
 próprio usuário configura em *Ajustes*.
 
+## Lançamento por voz
+
+O botão de microfone (centro da barra e no início) é o jeito principal de lançar:
+
+1. O executante toca no microfone e fala a ocorrência como contaria a um colega:
+   "VT-03 da Linha 1 desarmou às 14h30, reapertei os bornes, liberado às 15h, ficou parado
+   30 minutos, resolvido".
+2. O texto é transcrito pelo reconhecimento de voz do Android, em português.
+3. O app organiza a fala em campos (equipamento, área, falha, ação, horários, parada, situação,
+   quem atendeu). Com equipe e internet, usa a função `rt-voz` no Supabase, que chama o Claude
+   (Anthropic). Sem internet, sem chave ou se a IA falhar, usa o interpretador local do celular
+   (`www/interpretador.js`).
+4. Aparece um cartão de revisão já preenchido. O que faltou fica destacado em amarelo e se
+   completa com um toque (chips de área, "Terminou agora", Sim/Não). Um toque em **Lançar** e
+   pronto; "Desfazer" fica disponível por alguns segundos.
+
+Dá para ditar mais de uma ocorrência de uma vez: a IA separa em cartões.
+
+### Ligar a IA (uma vez)
+
+A função `rt-voz` já está publicada no projeto Supabase. Falta só a chave da API da Anthropic:
+
+1. Crie uma chave em https://console.anthropic.com (Settings > API Keys).
+2. No painel do Supabase: **Edge Functions > Secrets > Add new secret**, nome
+   `ANTHROPIC_API_KEY`, valor = a chave.
+
+Sem a chave o app funciona igual, usando o interpretador local (menos preciso com falas longas).
+Opcional: `RT_MODELO` troca o modelo (padrão `claude-opus-5-5`) e `RT_LIMITE_DIA` limita o
+número de interpretações por equipe por dia (padrão 400).
+
 ## Como a equipe trabalha junta
 
 1. Uma pessoa cria a equipe no app e recebe um **código** (ex.: `KA8J-5J2K`). Passa aos colegas.
@@ -45,6 +75,11 @@ próprio usuário configura em *Ajustes*.
   grava nada diretamente. Todo acesso passa por funções `rt_*` que exigem o **código da equipe**,
   guardado no servidor apenas como hash SHA-256 (`supabase/schema.sql`).
 - Sem login, sem e-mail, sem rastreamento. A única identificação é o nome que a pessoa digita.
+- Voz: o áudio é transcrito pelo serviço de reconhecimento de voz do próprio Android (Google).
+  O app não grava nem guarda áudio. Só o **texto** transcrito vai para a função `rt-voz` do seu
+  Supabase, que valida o código da equipe e o envia à API da Anthropic para organizar os campos.
+  A Anthropic não usa dados da API para treinar modelos. Quem preferir pode desligar a IA em
+  *Ajustes* e tudo passa a ser interpretado no celular.
 - Sem backup automático em nuvem do Android (`allowBackup=false`). A única permissão é INTERNET.
 - Nenhum nome de empresa, planta, área ou equipamento no código. Os padrões são genéricos
   ("Área 1", turnos A/B/C) e editáveis. Os dados pertencem à equipe, no projeto Supabase seu.
@@ -75,6 +110,9 @@ app/
   www/                 interface (HTML, CSS, JS puros, sem dependências)
   www/config.js        URL e chave pública do servidor da equipe
   supabase/schema.sql  tabelas e funções do servidor (colar no SQL Editor do Supabase)
+  supabase/functions/rt-voz/  função que organiza a fala com o Claude
+  www/interpretador.js organiza a fala no celular, sem internet
+  www/voz.js           microfone, revisão e lançamento por voz
   android/             projeto Android gerado pelo Capacitor (abre no Android Studio)
   capacitor.config.json
   loja/                ícone 512 px e textos para a ficha da Play Store

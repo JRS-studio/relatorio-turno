@@ -4,10 +4,13 @@
 Relatório de Turno
 
 ## Descrição breve (máx. 80)
-Lance as ocorrências do turno e envie o relatório pronto no WhatsApp.
+Fale a ocorrência, o app preenche tudo. Relatório do turno pronto no WhatsApp.
 
 ## Descrição completa (máx. 4000)
 Feito para equipes de manutenção elétrica e mecânica que precisam entregar o relatório do turno sem perder tempo e sem perder informação. Todos os executantes do turno lançam do próprio celular no mesmo relatório; o último a encerrar envia no grupo.
+
+FALE E PRONTO
+Toque no microfone e conte o que aconteceu: equipamento, falha, o que foi feito, horários, se parou. O app organiza tudo em campos, você confere e lança com um toque.
 
 COMO FUNCIONA
 • Inicie o turno em dois toques: data, turno e quem está presente.
@@ -34,13 +37,13 @@ Produtividade (ou Negócios)
 
 ## Formulário "Segurança dos dados" (Play Console)
 - O app coleta ou compartilha dados do usuário? **Coleta** (envia ao servidor da equipe) e **não compartilha** com terceiros.
-- Tipos: *Informações pessoais > Nome* (o nome digitado) e *Atividade no app > Outro conteúdo gerado pelo usuário* (textos das ocorrências). Finalidade: funcionalidade do app. Obrigatório para a função de equipe; opcional no modo individual.
+- Tipos: *Informações pessoais > Nome* (o nome digitado) e *Atividade no app > Outro conteúdo gerado pelo usuário* (textos das ocorrências) e *Áudio > Gravações de voz ou som*, marcado como processado de forma efêmera (o Android transcreve; o áudio não é armazenado e só o texto vai ao servidor). Finalidade: funcionalidade do app. Obrigatório para a função de equipe; opcional no modo individual.
 - Os dados são criptografados em trânsito? **Sim** (HTTPS).
 - O usuário pode solicitar a exclusão dos dados? **Sim**: no app (Ajustes > Apagar) e pelo responsável pela equipe no servidor.
 - Práticas de segurança: dados não são vendidos; nenhum dado é usado para publicidade ou análise.
 
 ## Permissões declaradas
-Apenas INTERNET, para falar com o servidor da equipe.
+INTERNET (servidor da equipe), RECORD_AUDIO (lançamento por voz, pedida no primeiro uso) e VIBRATE (retorno tátil).
 
 ## Capturas de tela
 Tire no próprio celular (mín. 2, formato retrato). Sugestão: tela inicial, formulário de ocorrência, lançamentos do turno, relatório pronto.

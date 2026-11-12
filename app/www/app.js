@@ -3,7 +3,7 @@
    (Supabase, funções rt_*). Quem tem o código da equipe lança no mesmo relatório. */
 'use strict';
 
-const VERSAO = '1.1.0';
+const VERSAO = '2.0.0';
 const KEY = 'relatorio-turno.v2';
 
 /* ---------- utilidades ---------- */
@@ -25,7 +25,12 @@ const normEq = s => String(s || '').toLowerCase().replace(/[\s\-_.]/g, '');
 const limpa = s => String(s == null ? '' : s).replace(/\*/g, '').trim();
 const vivas = a => (a || []).filter(x => !x.excluido);
 let toastT;
-function toast(m) { const t = $('#toast'); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2800); }
+function toast(m, acao) {
+  const t = $('#toast'), b = $('#toastBt'); $('#toastTx').textContent = m; t.hidden = false;
+  b.hidden = !acao; b.onclick = null;
+  if (acao) { b.textContent = acao.txt; b.onclick = () => { t.hidden = true; acao.fn(); }; }
+  clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, acao ? 6000 : 2800);
+}
 
 const ESP = { ele: { nome: 'Elétrica', adj: 'elétrica', tit: 'OCORRÊNCIAS ELÉTRICAS' }, mec: { nome: 'Mecânica', adj: 'mecânica', tit: 'OCORRÊNCIAS MECÂNICAS' } };
 const SIT = { resolvido: 'Resolvido', paliativo: 'Paliativo', pendente: 'Ficou pendente' };
@@ -44,7 +49,7 @@ const CFG_PADRAO = () => ({
   equipeEle: [], equipeMec: [],
   tiposEle: ['Motor', 'Sensor', 'Cabo/conexão', 'Inversor', 'CLP/automação', 'Contator/disjuntor', 'Iluminação', 'Outro'],
   tiposMec: ['Rolamento', 'Correia/roletes', 'Redutor', 'Hidráulico', 'Pneumático', 'Vazamento', 'Desgaste/estrutura', 'Outro'],
-  emoji: false, ultimaLetra: ''
+  emoji: false, ultimaLetra: '', ia: true
 });
 const SYNC_PADRAO = () => ({ url: '', key: '', codigo: '', equipeNome: '', nome: '', desde: 0, outbox: { turnos: [], occs: [], pends: [] }, ultimo: 0, erro: '' });
 let DB = { cfg: CFG_PADRAO(), sync: SYNC_PADRAO(), turnos: {} };
@@ -151,10 +156,12 @@ function renderStatus() {
   let tx = '';
   if (equipeOk()) {
     const n = DB.sync.outbox.turnos.length + DB.sync.outbox.occs.length + DB.sync.outbox.pends.length;
-    tx = 'Equipe ' + DB.sync.equipeNome + ' · ' + (DB.sync.erro ? (online ? '⚠️ ' + DB.sync.erro : '📴 sem conexão') : (DB.sync.ultimo ? '✅ sincronizado às ' + hmDe(DB.sync.ultimo) : 'conectando…')) + (n ? ' · ' + n + ' aguardando envio' : '');
+    tx = DB.sync.equipeNome + ' · ' + (DB.sync.erro ? (online ? DB.sync.erro : 'sem conexão, lançamentos guardados') : (DB.sync.ultimo ? 'sincronizado ' + hmDe(DB.sync.ultimo) : 'conectando…')) + (n ? ' · ' + n + ' aguardando envio' : '');
   } else if (servidorOk()) tx = 'Você ainda não entrou numa equipe.';
   else tx = 'Modo individual: sem servidor configurado, os dados ficam só neste aparelho.';
   $('#syncHome').textContent = tx; $('#syncLan').textContent = tx;
+  const dc = !equipeOk() ? 'dot' : DB.sync.erro ? (online ? 'dot wait' : 'dot off') : (DB.sync.ultimo ? 'dot on' : 'dot wait');
+  $('#syncDot').className = dc; $('#syncDot2').className = dc;
   $('#homeNota').textContent = equipeOk() ? 'Os 4 executantes lançam no mesmo relatório. O último a encerrar envia no grupo. Seus lançamentos ficam guardados mesmo sem sinal e sobem quando a conexão voltar.' : 'Sem equipe configurada o app funciona só neste aparelho. Entre na equipe em Ajustes para compartilhar o relatório.';
 }
 setInterval(() => { if (equipeOk() && document.visibilityState === 'visible' && ['home', 'lan', 'fechar'].includes(viewAtual)) sincronizar(); }, 15000);
@@ -174,7 +181,7 @@ function ir(v, silencioso) {
 }
 document.addEventListener('click', e => {
   const g = e.target.closest('[data-go]'); if (g) { ir(g.dataset.go); return; }
-  const t = e.target.closest('nav.tabs button'); if (t) ir(t.dataset.tab);
+  const t = e.target.closest('nav.tabs button[data-tab]'); if (t) ir(t.dataset.tab);
 });
 
 /* ---------- chips ---------- */
@@ -225,17 +232,29 @@ function renderHome() {
     montaChips($('#iEle'), ele, chipSel($('#iEle'))); montaChips($('#iMec'), mec, chipSel($('#iMec')));
     if (!ele.length) $('#iEle').innerHTML = '<span class="hint">Nenhum nome cadastrado. Cadastre em Ajustes ou informe no fechamento.</span>';
     if (!mec.length) $('#iMec').innerHTML = '<span class="hint">Nenhum nome cadastrado.</span>';
+    resumoIni();
   } else {
-    $('#haTit').textContent = tituloTurno(t);
+    $('#haTit').textContent = 'Turno ' + t.turno + ' · Letra ' + t.letra;
     const tc = turnoCfg(t.turno);
-    $('#haSub').textContent = (tc ? tc.ini + ' às ' + tc.fim + ' · ' : '') + 'iniciado às ' + t.iniciadoEm + (t.abertoPor ? ' por ' + t.abertoPor : '');
-    const o = vivas(t.ocorrencias), r = o.filter(x => x.rascunho).length;
-    $('#haStats').innerHTML = '<div><b>' + o.filter(x => x.esp === 'ele').length + '</b><span>elétrica</span></div><div><b>' + o.filter(x => x.esp === 'mec').length + '</b><span>mecânica</span></div><div><b>' + r + '</b><span>rascunho' + (r === 1 ? '' : 's') + '</span></div>';
+    $('#haSub').textContent = fd(t.data) + (tc && tc.ini ? ' · ' + tc.ini + ' às ' + tc.fim : '') + ' · aberto às ' + t.iniciadoEm + (t.abertoPor ? ' por ' + t.abertoPor : '');
+    const o = vivas(t.ocorrencias), r = o.filter(x => x.rascunho).length, par = o.filter(x => !x.rascunho && x.parou === 'sim').reduce((s, x) => s + (Number(x.tm) || 0), 0);
+    $('#haStats').innerHTML = '<div class="e"><b>' + o.filter(x => x.esp === 'ele').length + '</b><span>Elétrica</span></div><div class="m"><b>' + o.filter(x => x.esp === 'mec').length + '</b><span>Mecânica</span></div><div><b>' + (par >= 60 ? Math.floor(par / 60) + 'h' + p2(par % 60) : par + '′') + '</b><span>Parado</span></div><div><b' + (r ? ' style="color:var(--warn)"' : '') + '>' + r + '</b><span>Rascunho</span></div>';
+    $('#haLanN').textContent = o.length ? 'Lançamentos (' + o.length + ')' : 'Lançamentos';
+    const ult = o.slice().sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0)).slice(0, 3);
+    $('#haUlt').innerHTML = ult.length ? '<h3 style="margin:4px 0 0">Últimos lançamentos</h3>' + ult.map(cardOcc).join('') : '';
   }
   const rec = todosTurnos().filter(x => x.encerradoEm).reverse().slice(0, 3);
   $('#homeRec').hidden = !rec.length;
   $('#homeRecList').innerHTML = rec.map(linhaHist).join('');
 }
+function resumoIni() {
+  const tc = turnoCfg($('#iTurno').value), d = $('#iData').value;
+  $('#iniResumo').textContent = 'Turno ' + $('#iTurno').value + ' · Letra ' + $('#iLetra').value;
+  const eq = [...chipSel($('#iEle')), ...chipSel($('#iMec'))];
+  $('#iniSub').textContent = fd(d) + (tc && tc.ini ? ' · ' + tc.ini + ' às ' + tc.fim : '') + (eq.length ? ' · ' + juntar(eq) : '') + (equipeOk() ? ' · ' + DB.sync.equipeNome : '');
+}
+['iData', 'iTurno', 'iLetra'].forEach(id => $('#' + id).addEventListener('change', resumoIni));
+['iEle', 'iMec'].forEach(id => $('#' + id).addEventListener('click', () => setTimeout(resumoIni, 0)));
 function linhaHist(t) {
   const n = vivas(t.ocorrencias).length;
   return '<button type="button" class="hist" data-rel="' + t.id + '"><span><b>' + esc(tituloTurno(t)) + '</b><br><span class="mut sm">' + n + ' ocorrência' + (n === 1 ? '' : 's') + (t.encerradoEm ? ' · encerrado às ' + esc(t.encerradoEm) + (t.encerradoPor ? ' por ' + esc(t.encerradoPor) : '') : ' · em andamento') + '</span></span><span class="mut">›</span></button>';
@@ -276,7 +295,7 @@ function cardOcc(o) {
   if (o.sit) meta.push(SIT[o.sit]);
   if (o.quem && o.quem.length) meta.push(juntar(o.quem));
   return '<section class="card occ ' + o.esp + (o.rascunho ? ' draft' : '') + '"><div class="h"><span class="t">' + esc(o.eq || '(sem equipamento)') + '</span><span class="pill ' + o.esp + '">' + ESP[o.esp].nome + (o.area ? ' · ' + esc(o.area) : '') + '</span></div>'
-    + '<div class="sm mut">' + esc(meta.join(' · ')) + '</div>' + linhas.join('') + (o.autor ? '<div class="hint">lançado por ' + esc(o.autor) + '</div>' : '')
+    + '<div class="meta num">' + esc(meta.join(' · ')) + '</div>' + linhas.join('') + (o.autor ? '<div class="hint">lançado por ' + esc(o.autor) + '</div>' : '')
     + '<div class="act"><button type="button" class="btn" data-ed="' + o.id + '">' + (o.rascunho ? 'Completar' : 'Editar') + '</button><button type="button" class="btn" data-dup="' + o.id + '">Duplicar</button></div></section>';
 }
 function renderLan() {
@@ -303,6 +322,7 @@ $('#bPronto').addEventListener('click', () => {
   const eu = meuNome(); t.prontos = (t.prontos || []).includes(eu) ? t.prontos.filter(n => n !== eu) : [...t.prontos, eu];
   tocaTurno(t); renderLan(); toast(t.prontos.includes(eu) ? 'Confirmado. Avise o colega que vai encerrar.' : 'Confirmação desfeita.');
 });
+$('#haUlt').addEventListener('click', e => { const ed = e.target.closest('[data-ed]'); if (ed) abrirOcc(ed.dataset.ed); const dp = e.target.closest('[data-dup]'); if (dp) { const o = turnoAtual().ocorrencias.find(x => x.id === dp.dataset.dup); if (o) abrirOcc(null, Object.assign({}, o, { id: null, hi: '', hf: '', tm: '', rascunho: false, autor: undefined })); } });
 $('#lanLista').addEventListener('click', e => {
   const ed = e.target.closest('[data-ed]'); if (ed) { abrirOcc(ed.dataset.ed); return; }
   const dp = e.target.closest('[data-dup]');
@@ -446,7 +466,7 @@ function renderFechar() {
   $('#fProntos').hidden = !equipeOk();
   if (equipeOk()) $('#fProntos').innerHTML = '<h2>Confirmação da equipe</h2><p class="sm">' + esc(textoProntos(t)) + '</p><p class="hint">Quem ainda não confirmou pode ter lançamentos por fazer. Ao encerrar, o app busca os lançamentos mais recentes de todos antes de gerar o texto.</p>';
   renderPend(t);
-  $('#fEqEle').value = t.equipe.ele.join(', '); $('#fEqMec').value = t.equipe.mec.join(', '); $('#fObs').value = t.obs || '';
+  $('#fEqEle').value = equipeDe(t, 'ele').join(', '); $('#fEqMec').value = equipeDe(t, 'mec').join(', '); $('#fObs').value = t.obs || '';
   $('#fConf').checked = false; $('#fErr').textContent = '';
 }
 function renderPend(t) {
@@ -491,6 +511,13 @@ $('#bEncerrar').addEventListener('click', async () => {
   } finally { bt.disabled = false; }
 });
 
+/* equipe do turno: a informada; se ficou vazia (turno começado com um toque), quem atendeu/lançou */
+function equipeDe(t, esp) {
+  const inf = (esp === 'mec' ? t.equipe.mec : t.equipe.ele) || [];
+  if (inf.length) return inf;
+  return [...new Set(vivas(t.ocorrencias).filter(o => o.esp === esp && !o.rascunho).flatMap(o => (o.quem && o.quem.length ? o.quem : (o.autor ? [o.autor] : []))))];
+}
+
 /* ---------- Texto do relatório (formato WhatsApp) ---------- */
 function textoRelatorio(t) {
   const c = DB.cfg, E = c.emoji, L = [];
@@ -529,8 +556,9 @@ function textoRelatorio(t) {
   if (pc.length) L.push('Concluídas neste turno: ' + pc.map(p => limpa(p.texto)).join('; ') + '.');
   if (t.obs) { L.push(''); H('OBSERVAÇÕES', '📝'); L.push(limpa(t.obs)); }
   L.push(''); H('EQUIPE', '👷');
-  L.push('Elétrica: ' + (t.equipe.ele.length ? juntar(t.equipe.ele.map(limpa)) : 'não informada'));
-  L.push('Mecânica: ' + (t.equipe.mec.length ? juntar(t.equipe.mec.map(limpa)) : 'não informada'));
+  const ee = equipeDe(t, 'ele'), em = equipeDe(t, 'mec');
+  L.push('Elétrica: ' + (ee.length ? juntar(ee.map(limpa)) : 'não informada'));
+  L.push('Mecânica: ' + (em.length ? juntar(em.map(limpa)) : 'não informada'));
   L.push('Turno encerrado às ' + (t.encerradoEm || agoraHM()) + (t.encerradoPor ? ' por ' + limpa(t.encerradoPor) : '') + '.');
   return L.join('\n');
 }
@@ -630,6 +658,8 @@ function renderCfg() {
     ? '<p>Equipe: <b>' + esc(DB.sync.equipeNome) + '</b></p><p>Código da equipe: <b style="font-size:22px;letter-spacing:.12em">' + esc(DB.sync.codigo) + '</b></p><p class="hint">Passe este código aos colegas do turno (por exemplo no grupo do WhatsApp). Quem tem o código vê e lança no mesmo relatório, então não espalhe fora da equipe.</p><button type="button" class="btn" id="bCodCopy">Copiar código</button>'
     : (servidorOk() ? '<p class="hint">Você ainda não entrou numa equipe.</p><button type="button" class="btn pri" data-go="equipe">Entrar na equipe</button>' : '<p class="hint">Configure o servidor abaixo para usar o relatório compartilhado.</p>');
   const bc = $('#bCodCopy'); if (bc) bc.addEventListener('click', () => copiar('Código da equipe do Relatório de Turno: ' + DB.sync.codigo));
+  $('#cIa').checked = DB.cfg.ia !== false;
+  $('#cfgIa').textContent = equipeOk() ? 'Toque no microfone, fale a ocorrência do jeito que contaria a um colega e o app preenche os campos. Você só confere e lança.' : 'Sem equipe, a fala é organizada no próprio celular.';
   $('#cfgVer').textContent = 'Versão ' + VERSAO + (nativo ? ' · app' : ' · navegador');
 }
 $('#bNomeOk').addEventListener('click', () => { const n = $('#cNome').value.trim(); if (!n) { toast('Informe seu nome.'); return; } DB.sync.nome = n; salvar(); toast('Nome salvo.'); renderStatus(); });
@@ -654,7 +684,7 @@ $('#fCfg').addEventListener('submit', e => {
   c.turnos = turnos.length ? turnos : CFG_PADRAO().turnos;
   c.letras = lista($('#cLetras').value); if (!c.letras.length) c.letras = CFG_PADRAO().letras;
   c.equipeEle = lista($('#cEle').value); c.equipeMec = lista($('#cMec').value); c.tiposEle = lista($('#cTipEle').value); c.tiposMec = lista($('#cTipMec').value);
-  c.emoji = $('#cEmoji').checked; salvar(); toast('Configurações salvas.'); ir('home');
+  c.emoji = $('#cEmoji').checked; c.ia = $('#cIa').checked; salvar(); toast('Configurações salvas.'); ir('home');
 });
 $('#bExport').addEventListener('click', async () => {
   const tx = JSON.stringify(DB); const ok = await compartilhar(tx, 'Backup do Relatório de Turno');
@@ -680,7 +710,8 @@ function renderTudo() {
 carregar(); renderTudo(); restaurarNativo();
 if (nativo && Plug.App && Plug.App.addListener) {
   Plug.App.addListener('backButton', () => {
-    if (viewAtual === 'occ') ir(occVoltarPara); else if (viewAtual !== 'home') ir('home'); else Plug.App.exitApp();
+    if (window.Voz && Voz.aberta()) Voz.fechar(); else if (viewAtual === 'occ') ir(occVoltarPara); else if (viewAtual !== 'home') ir('home'); else Plug.App.exitApp();
   });
   Plug.App.addListener('appStateChange', s => { if (s && s.isActive) agendarSync(100); });
 }
+$('#cIa').addEventListener('change', () => { DB.cfg.ia = $('#cIa').checked; salvar(); toast(DB.cfg.ia ? 'IA ligada para a voz.' : 'Voz organizada só no celular.'); });
